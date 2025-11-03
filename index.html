@@ -11,23 +11,18 @@
     <h1>🎬 TikTok Scanner</h1>
 
     <div id="form">
-      <label>Username: 
+      <label>Username:
         <input id="username" placeholder="vd: tiktokvn" />
       </label>
-      <label>Số lượng video: 
+
+      <label>Số lượng video:
         <input id="limit" type="number" value="30" min="1" />
-      </label>
-      <label>Từ ngày: 
-        <input id="start" type="date" />
-      </label>
-      <label>Đến ngày: 
-        <input id="end" type="date" />
       </label>
 
       <div class="actions">
         <button id="fetchBtn">Bắt đầu quét</button>
-        <a id="downloadCsvBtn" href="#" class="btn" download="tiktok_data.csv" disabled>Tải CSV</a>
-        <a id="downloadXlsBtn" href="#" class="btn" download="tiktok_data.xlsx" disabled>Tải XLSX</a>
+        <a id="downloadCsvBtn" href="#" class="btn disabled" download="tiktok_data.csv">Tải CSV</a>
+        <a id="downloadXlsBtn" href="#" class="btn disabled" download="tiktok_data.xlsx">Tải XLSX</a>
       </div>
     </div>
 
@@ -35,7 +30,9 @@
     <div id="output"></div>
   </main>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.19.3/xlsx.full.min.js"></script>
+  <!-- ✅ nạp thư viện XLSX chuẩn (CDN chính thức) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+
   <script src="script.js"></script>
 </body>
 </html>
