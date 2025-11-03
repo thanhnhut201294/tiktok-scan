@@ -14,26 +14,29 @@
     </header>
 
     <section id="form">
-      <div class="form-row">
-        <label>Username</label>
-        <input id="username" placeholder="vd: tiktokvn" />
-      </div>
-      <div class="form-row">
-        <label>Số lượng video</label>
-        <input id="limit" type="number" value="30" min="1" />
-      </div>
-      <div class="form-row">
-        <label>Từ ngày</label>
-        <input id="start" type="date" />
-      </div>
-      <div class="form-row">
-        <label>Đến ngày</label>
-        <input id="end" type="date" />
+      <div class="form-grid">
+        <div class="form-row">
+          <label>Username</label>
+          <input id="username" placeholder="vd: tiktokvn" />
+        </div>
+        <div class="form-row">
+          <label>Số lượng video</label>
+          <input id="limit" type="number" value="30" min="1" />
+        </div>
+        <div class="form-row">
+          <label>Từ ngày</label>
+          <input id="start" type="date" />
+        </div>
+        <div class="form-row">
+          <label>Đến ngày</label>
+          <input id="end" type="date" />
+        </div>
       </div>
 
       <div class="actions">
         <button id="fetchBtn" class="btn primary">🚀 Bắt đầu quét</button>
         <button id="downloadCsvBtn" class="btn secondary" disabled>⬇️ Tải CSV</button>
+        <button id="downloadXlsBtn" class="btn secondary" disabled>📊 Tải Excel</button>
       </div>
     </section>
 
@@ -42,9 +45,143 @@
   </main>
 
   <footer>
-    <p>© 2025 TikTok Scanner by <strong>thanhnhut201294</strong></p>
+    <p>© 2025 TikTok Scanner · Designed by <strong>thanhnhut201294</strong></p>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+  const WORKER_URL = "https://tiktok-proxy.thanhnhut201294.workers.dev/";
+
+  function formatDate(tsSeconds) {
+    return new Date(tsSeconds * 1000).toLocaleString();
+  }
+
+  async function fetchViaWorker(username, cursor, count) {
+    const url = new URL(WORKER_URL);
+    url.searchParams.set('unique_id', username);
+    url.searchParams.set('count', count);
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const res = await fetch(url.toString());
+    if (!res.ok) throw new Error('Network error: ' + res.status);
+    return res.json();
+  }
+
+  async function fetchTikTokVideos(username, maxVideos, startDate, endDate) {
+    const allVideos = [];
+    const seen = new Set();
+    let cursor = 0, hasMore = true;
+
+    while (hasMore) {
+      const data = await fetchViaWorker(username, cursor, 30);
+      if (!data?.data?.videos) throw new Error('Không tìm thấy video.');
+      for (const v of data.data.videos) {
+        if (!v.video_id || seen.has(v.video_id)) continue;
+        const date = new Date(v.create_time * 1000);
+        if (startDate && endDate && (date < startDate || date > endDate)) continue;
+        if (allVideos.length >= maxVideos) { hasMore = false; break; }
+        allVideos.push(v); seen.add(v.video_id);
+      }
+      cursor = data.data.sec_cursor || null;
+      if (!cursor || allVideos.length >= maxVideos) hasMore = false;
+      else await new Promise(r => setTimeout(r, 400));
+    }
+    return allVideos;
+  }
+
+  const fetchBtn = document.getElementById('fetchBtn');
+  const csvBtn = document.getElementById('downloadCsvBtn');
+  const xlsBtn = document.getElementById('downloadXlsBtn');
+
+  fetchBtn.addEventListener('click', async () => {
+    const username = usernameEl.value.trim();
+    const limit = parseInt(limitEl.value);
+    const start = startEl.value ? new Date(startEl.value) : null;
+    const end = endEl.value ? new Date(endEl.value) : null;
+
+    if (!username || !limit) { alert('Nhập username và số lượng!'); return; }
+
+    statusEl.textContent = '⏳ Đang tải dữ liệu...';
+    outputEl.innerHTML = '';
+    csvBtn.disabled = true;
+    xlsBtn.disabled = true;
+
+    try {
+      const videos = await fetchTikTokVideos(username, limit, start, end);
+      statusEl.textContent = `✅ Đã lấy ${videos.length} video.`;
+      renderTable(videos, username);
+      prepareDownloads(videos, username);
+    } catch (e) {
+      statusEl.textContent = '❌ ' + e.message;
+    }
+  });
+
+  const usernameEl = document.getElementById('username');
+  const limitEl = document.getElementById('limit');
+  const startEl = document.getElementById('start');
+  const endEl = document.getElementById('end');
+  const statusEl = document.getElementById('status');
+  const outputEl = document.getElementById('output');
+
+  function renderTable(videos, username) {
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Video URL</th><th>Caption</th><th>Ngày đăng</th>
+          <th>Views</th><th>Likes</th><th>Comments</th><th>Shares</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+    videos.forEach(v => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><a href="https://www.tiktok.com/@${username}/video/${v.video_id}" target="_blank">Xem</a></td>
+        <td>${escapeHtml(v.title || '(Không có caption)')}</td>
+        <td>${formatDate(v.create_time)}</td>
+        <td>${v.play_count||0}</td>
+        <td>${v.digg_count||0}</td>
+        <td>${v.comment_count||0}</td>
+        <td>${v.share_count||0}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    outputEl.innerHTML = '';
+    outputEl.appendChild(table);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function prepareDownloads(videos, username) {
+    if (!videos.length) return;
+    const rows = [['VideoURL','Caption','Date','Views','Likes','Comments','Shares']];
+    videos.forEach(v => {
+      rows.push([
+        `https://www.tiktok.com/@${username}/video/${v.video_id}`,
+        (v.title||'').replace(/(\r\n|\n|\r)/gm,' '),
+        formatDate(v.create_time),
+        v.play_count||0, v.digg_count||0, v.comment_count||0, v.share_count||0
+      ]);
+    });
+
+    // CSV
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const csvBlob = new Blob([csv], {type:'text/csv'});
+    const csvUrl = URL.createObjectURL(csvBlob);
+    csvBtn.href = csvUrl;
+    csvBtn.download = `tiktok_${username}.csv`;
+    csvBtn.disabled = false;
+
+    // Excel
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "TikTok Data");
+    xlsBtn.onclick = () => XLSX.writeFile(wb, `tiktok_${username}.xlsx`);
+    xlsBtn.disabled = false;
+  }
+  </script>
 </body>
 </html>
