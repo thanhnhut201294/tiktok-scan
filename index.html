@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TikTok Scanner</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>🎬 TikTok Video Scanner</h2>
-  <div id="form">
-    <label>Username: <input id="username" placeholder="vd: tiktokvn" /></label><br>
-    <label>Số lượng video: <input id="limit" type="number" value="30" /></label><br>
-    <label>Từ ngày: <input id="start" type="date"></label><br>
-    <label>Đến ngày: <input id="end" type="date"></label><br>
-    <button id="fetchBtn">Bắt đầu quét</button>
-  </div>
+  <main>
+    <h1>🎬 TikTok Scanner</h1>
+    <div id="form">
+      <label>Username: <input id="username" placeholder="vd: tiktokvn" /></label>
+      <label>Số lượng video: <input id="limit" type="number" value="30" min="1" /></label>
+      <label>Từ ngày: <input id="start" type="date" /></label>
+      <label>Đến ngày: <input id="end" type="date" /></label>
+      <div class="actions">
+        <button id="fetchBtn">Bắt đầu quét</button>
+        <button id="downloadCsvBtn" disabled>Tải CSV</button>
+      </div>
+    </div>
 
-  <div id="output"></div>
+    <div id="status"></div>
+    <div id="output"></div>
+  </main>
   <script src="script.js"></script>
 </body>
 </html>
