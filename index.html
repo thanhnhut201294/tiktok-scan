@@ -7,32 +7,31 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main>
+  <main class="card">
     <h1>🎬 TikTok Scanner</h1>
 
-    <div id="form">
-      <label>Username:
-        <input id="username" placeholder="vd: tiktokvn" />
-      </label>
+    <div class="form-group">
+      <label>Username:</label>
+      <input id="username" placeholder="vd: tiktokvn" />
+    </div>
 
-      <label>Số lượng video:
-        <input id="limit" type="number" value="30" min="1" />
-      </label>
+    <div class="form-group">
+      <label>Số lượng video:</label>
+      <input id="limit" type="number" value="30" min="1" />
+    </div>
 
-      <div class="actions">
-        <button id="fetchBtn">Bắt đầu quét</button>
-        <a id="downloadCsvBtn" href="#" class="btn disabled" download="tiktok_data.csv">Tải CSV</a>
-        <a id="downloadXlsBtn" href="#" class="btn disabled" download="tiktok_data.xlsx">Tải XLSX</a>
-      </div>
+    <div class="actions">
+      <button id="fetchBtn" type="button">🚀 Bắt đầu quét</button>
+      <a id="downloadCsvBtn" class="btn disabled" href="#">Tải CSV</a>
+      <a id="downloadXlsBtn" class="btn disabled" href="#">Tải XLSX</a>
     </div>
 
     <div id="status"></div>
     <div id="output"></div>
   </main>
 
-  <!-- ✅ nạp thư viện XLSX chuẩn (CDN chính thức) -->
+  <!-- Thư viện xuất Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
-
   <script src="script.js"></script>
 </body>
 </html>
