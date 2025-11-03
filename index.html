@@ -1,166 +1,186 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TikTok Scanner</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    body {
-      background: #f8fafc;
-    }
-    .caption {
-      max-height: 80px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      position: relative;
-    }
-    .caption.expanded {
-      max-height: none;
-    }
-    .caption-toggle {
-      color: #2563eb;
-      cursor: pointer;
-      font-size: 13px;
+    body { font-family: 'Segoe UI', sans-serif; background:#f3f6fb; color:#222; margin:0; padding:40px; }
+    main { max-width:1000px; margin:auto; background:#fff; padding:24px 32px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
+    h1 { text-align:center; color:#007bff; margin-top:0; }
+    #form { display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; }
+    label { flex:1 1 200px; font-size:14px; }
+    input { width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:6px; }
+    .actions { flex:1 1 100%; display:flex; gap:10px; justify-content:center; margin-top:8px; }
+    button { padding:10px 16px; border:none; border-radius:8px; background:#007bff; color:#fff; cursor:pointer; transition:0.2s; }
+    button:hover:not(:disabled){ background:#005ec4; }
+    button:disabled{ opacity:0.6; cursor:not-allowed; }
+    #status { margin-top:12px; text-align:center; font-weight:500; }
+    table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
+    th, td { border:1px solid #eee; padding:8px 10px; text-align:left; }
+    th { background:#f9fafb; }
+    td a { color:#007bff; text-decoration:none; }
+    td a:hover { text-decoration:underline; }
+    .caption { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px; }
+    @media(max-width:700px){
+      #form{flex-direction:column;}
+      label{width:100%;}
     }
   </style>
 </head>
-<body class="flex justify-center py-8">
-
-  <div class="bg-white shadow-md rounded-2xl p-6 w-full max-w-5xl">
-    <h1 class="text-2xl font-bold text-blue-600 flex items-center gap-2 mb-1">
-      🎬 TikTok Scanner
-    </h1>
-    <p class="text-gray-500 mb-6">Công cụ quét dữ liệu video TikTok nhanh & tiện lợi</p>
-
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-      <div>
-        <label class="text-sm font-semibold">Username</label>
-        <input id="username" type="text" placeholder="nhập username..." class="w-full border rounded-lg px-3 py-2 mt-1" />
-      </div>
-      <div>
-        <label class="text-sm font-semibold">Số lượng video</label>
-        <input id="count" type="number" value="5" class="w-full border rounded-lg px-3 py-2 mt-1" />
-      </div>
-      <div>
-        <label class="text-sm font-semibold">Từ ngày</label>
-        <input id="from-date" type="date" class="w-full border rounded-lg px-3 py-2 mt-1" />
-      </div>
-      <div>
-        <label class="text-sm font-semibold">Đến ngày</label>
-        <input id="to-date" type="date" class="w-full border rounded-lg px-3 py-2 mt-1" />
+<body>
+  <main>
+    <h1>🎬 TikTok Scanner</h1>
+    <div id="form">
+      <label>Username:<input id="username" placeholder="vd: tiktokvn" /></label>
+      <label>Số lượng video:<input id="limit" type="number" value="30" min="1" /></label>
+      <label>Từ ngày:<input id="start" type="date" /></label>
+      <label>Đến ngày:<input id="end" type="date" /></label>
+      <div class="actions">
+        <button id="fetchBtn">Bắt đầu quét</button>
+        <button id="downloadCsvBtn" disabled>Tải CSV</button>
+        <button id="downloadXlsxBtn" disabled>Tải XLSX</button>
       </div>
     </div>
 
-    <div class="flex flex-wrap items-center gap-4 mb-4">
-      <button id="start-btn" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
-        🚀 Bắt đầu quét
-      </button>
-      <button id="btn-csv" class="bg-gray-200 px-5 py-2 rounded-lg hover:bg-gray-300 transition">
-        📄 Tải CSV
-      </button>
-      <button id="btn-excel" class="bg-gray-200 px-5 py-2 rounded-lg hover:bg-gray-300 transition">
-        📊 Tải Excel
-      </button>
-    </div>
+    <div id="status"></div>
+    <div id="output"></div>
+  </main>
 
-    <p id="status" class="text-sm text-gray-600 mb-3">Đã lấy 0 video.</p>
-
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead class="bg-gray-100 text-gray-700 font-semibold">
-          <tr>
-            <th class="px-3 py-2 text-left border">#</th>
-            <th class="px-3 py-2 text-left border">Video URL</th>
-            <th class="px-3 py-2 text-left border">Caption</th>
-            <th class="px-3 py-2 text-left border">Ngày đăng</th>
-            <th class="px-3 py-2 text-left border">Views</th>
-            <th class="px-3 py-2 text-left border">Likes</th>
-            <th class="px-3 py-2 text-left border">Comments</th>
-            <th class="px-3 py-2 text-left border">Shares</th>
-          </tr>
-        </thead>
-        <tbody id="data-body" class="align-top"></tbody>
-      </table>
-    </div>
-  </div>
+  <!-- SheetJS (xlsx) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
-    const videos = [
-      {
-        url: "https://www.tiktok.com/@maymanthinhvuong/video/1",
-        caption: "Đã bao giờ bạn dừng lại, giữa một ngày chật kín tiếng ồn...",
-        date: "21:22:30 3/11/2025",
-        views: 4428,
-        likes: 235,
-        comments: 4,
-        shares: 10
-      },
-      {
-        url: "https://www.tiktok.com/@maymanthinhvuong/video/2",
-        caption: "Có người sống vì cha mẹ, vì một ánh nhìn lo âu không bao giờ nói ra...",
-        date: "21:20:33 3/11/2025",
-        views: 12200,
-        likes: 639,
-        comments: 12,
-        shares: 17
+  const WORKER_URL = "https://tiktok-proxy.thanhnhut201294.workers.dev/";
+
+  function formatDate(tsSeconds) {
+    return new Date(tsSeconds * 1000).toLocaleString();
+  }
+
+  async function fetchViaWorker(username, cursor, count) {
+    const url = new URL(WORKER_URL);
+    url.searchParams.set('unique_id', username);
+    url.searchParams.set('count', count);
+    if (cursor) url.searchParams.set('cursor', cursor);
+    const res = await fetch(url.toString());
+    if (!res.ok) throw new Error('Network error: ' + res.status);
+    return res.json();
+  }
+
+  async function fetchTikTokVideos(username, maxVideos, startDate, endDate) {
+    const allVideos = [];
+    const processedIds = new Set();
+    let cursor = 0, hasMore = true;
+    const countPerRequest = 30;
+
+    while (hasMore) {
+      const data = await fetchViaWorker(username, cursor, countPerRequest);
+      if (!data?.data?.videos) throw new Error('Lỗi API hoặc không có videos');
+      for (const v of data.data.videos) {
+        if (!v.video_id || processedIds.has(v.video_id)) continue;
+        const postDate = new Date(v.create_time * 1000);
+        if (startDate && endDate && (postDate < startDate || postDate > endDate)) continue;
+        if (allVideos.length >= maxVideos) { hasMore = false; break; }
+        allVideos.push(v);
+        processedIds.add(v.video_id);
       }
-    ];
-
-    const tbody = document.getElementById("data-body");
-    const status = document.getElementById("status");
-
-    function renderTable() {
-      tbody.innerHTML = videos.map((v, i) => `
-        <tr class="border-b">
-          <td class="px-3 py-2 border">${i + 1}</td>
-          <td class="px-3 py-2 border text-blue-600"><a href="${v.url}" target="_blank">Xem</a></td>
-          <td class="px-3 py-2 border">
-            <div class="caption">${v.caption}</div>
-            <div class="caption-toggle">Xem thêm</div>
-          </td>
-          <td class="px-3 py-2 border">${v.date}</td>
-          <td class="px-3 py-2 border">${v.views}</td>
-          <td class="px-3 py-2 border">${v.likes}</td>
-          <td class="px-3 py-2 border">${v.comments}</td>
-          <td class="px-3 py-2 border">${v.shares}</td>
-        </tr>
-      `).join("");
-
-      document.querySelectorAll(".caption-toggle").forEach(btn => {
-        btn.addEventListener("click", e => {
-          const caption = e.target.previousElementSibling;
-          caption.classList.toggle("expanded");
-          e.target.textContent = caption.classList.contains("expanded") ? "Ẩn bớt" : "Xem thêm";
-        });
-      });
+      cursor = data.data.sec_cursor || data.data.cursor || null;
+      if (!cursor || allVideos.length >= maxVideos) hasMore = false;
+      else await new Promise(r => setTimeout(r, 400));
     }
+    return allVideos;
+  }
 
-    renderTable();
-    status.textContent = `Đã lấy ${videos.length} video.`;
+  document.getElementById('fetchBtn').addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim();
+    const limit = parseInt(document.getElementById('limit').value);
+    const start = document.getElementById('start').value ? new Date(document.getElementById('start').value) : null;
+    const end = document.getElementById('end').value ? new Date(document.getElementById('end').value) : null;
+    const status = document.getElementById('status');
+    const output = document.getElementById('output');
+    document.getElementById('downloadCsvBtn').disabled = true;
+    document.getElementById('downloadXlsxBtn').disabled = true;
+    output.innerHTML = '';
 
-    // ✅ Cập nhật nút Tải CSV
-    document.getElementById("btn-csv").addEventListener("click", () => {
-      if (videos.length === 0) {
-        alert("Chưa có dữ liệu để tải!");
-        return;
-      }
+    if (!username || !limit) { alert('Nhập username và số lượng!'); return; }
+    status.textContent = '⏳ Đang tải...';
 
-      const csvContent = [
-        ["STT", "Video URL", "Caption", "Ngày đăng", "Views", "Likes", "Comments", "Shares"].join(","),
-        ...videos.map((v, i) =>
-          [i + 1, v.url, `"${v.caption.replace(/"/g, '""')}"`, v.date, v.views, v.likes, v.comments, v.shares].join(",")
-        )
-      ].join("\n");
+    try {
+      const videos = await fetchTikTokVideos(username, limit, start, end);
+      status.textContent = `✅ Đã lấy ${videos.length} video.`;
+      renderTable(videos, username);
+      prepareDownloads(videos, username);
+    } catch (e) {
+      status.textContent = '❌ ' + e.message;
+    }
+  });
 
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "tiktok_data.csv";
-      link.click();
+  function renderTable(videos, username) {
+    const output = document.getElementById('output');
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <tr>
+        <th>STT</th>
+        <th>Video URL</th>
+        <th>Caption</th>
+        <th>Ngày đăng</th>
+        <th>Views</th>
+        <th>Likes</th>
+        <th>Comments</th>
+        <th>Shares</th>
+      </tr>`;
+    videos.forEach((v, i) => {
+      const caption = v.title || '(Không có caption)';
+      const short = caption.length > 80 ? caption.slice(0, 80) + '...' : caption;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td><a href="https://www.tiktok.com/@${username}/video/${v.video_id}" target="_blank">Xem</a></td>
+        <td class="caption" title="${escapeHtml(caption)}">${escapeHtml(short)}</td>
+        <td>${formatDate(v.create_time)}</td>
+        <td>${v.play_count || 0}</td>
+        <td>${v.digg_count || 0}</td>
+        <td>${v.comment_count || 0}</td>
+        <td>${v.share_count || 0}</td>`;
+      table.appendChild(tr);
     });
-  </script>
+    output.innerHTML = '';
+    output.appendChild(table);
+  }
 
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function prepareDownloads(videos, username) {
+    if (!videos.length) return;
+    const headers = ['STT','VideoURL','Caption','Date','Views','Likes','Comments','Shares'];
+    const rows = videos.map((v, i) => [
+      i + 1,
+      `https://www.tiktok.com/@${username}/video/${v.video_id}`,
+      v.title || '',
+      formatDate(v.create_time),
+      v.play_count || 0, v.digg_count || 0, v.comment_count || 0, v.share_count || 0
+    ]);
+
+    // CSV
+    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvUrl = URL.createObjectURL(blob);
+    const csvBtn = document.getElementById('downloadCsvBtn');
+    csvBtn.href = csvUrl;
+    csvBtn.download = `tiktok_${username}.csv`;
+    csvBtn.disabled = false;
+    csvBtn.onclick = () => setTimeout(() => URL.revokeObjectURL(csvUrl), 1000);
+
+    // XLSX
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'TikTok');
+    const xlsxBtn = document.getElementById('downloadXlsxBtn');
+    xlsxBtn.onclick = () => XLSX.writeFile(wb, `tiktok_${username}.xlsx`);
+    xlsxBtn.disabled = false;
+  }
+  </script>
 </body>
 </html>
