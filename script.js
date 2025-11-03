@@ -1,5 +1,5 @@
 // Cấu hình: nếu bạn dùng Worker, set WORKER_URL = 'https://xxxxx.workers.dev'
-const WORKER_URL = ""; // <-- sau khi deploy Worker, dán URL ở đây hoặc gọi trực tiếp worker từ client
+const WORKER_URL = 'https://tiktok-proxy.thanhnhut201294.workers.dev/'; // <-- sau khi deploy Worker, dán URL ở đây hoặc gọi trực tiếp worker từ client
 
 function formatDate(tsSeconds) {
   return new Date(tsSeconds * 1000).toLocaleString();
