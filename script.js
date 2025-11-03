@@ -1,97 +1,73 @@
-const apiBase = "https://tiktok-proxy.thanhnhut201294.workers.dev/";
+document.getElementById("scanBtn").addEventListener("click", fetchTikTokData);
 
-const fetchBtn = document.getElementById("fetchBtn");
-const downloadCsvBtn = document.getElementById("downloadCsvBtn");
-const downloadXlsxBtn = document.getElementById("downloadXlsxBtn");
-const statusDiv = document.getElementById("status");
-const outputDiv = document.getElementById("output");
-
-let videoData = [];
-
-fetchBtn.addEventListener("click", async () => {
+async function fetchTikTokData() {
   const username = document.getElementById("username").value.trim();
-  const limit = document.getElementById("limit").value.trim();
+  const count = document.getElementById("count").value.trim();
+  const statusDiv = document.getElementById("status");
+  const csvBtn = document.getElementById("downloadCsvBtn");
+  const xlsxBtn = document.getElementById("downloadXlsxBtn");
 
   if (!username) {
-    alert("Vui lòng nhập username TikTok!");
+    statusDiv.textContent = "⚠️ Vui lòng nhập username TikTok";
     return;
   }
 
   statusDiv.textContent = "⏳ Đang quét dữ liệu...";
-  outputDiv.innerHTML = "";
-  videoData = [];
+  csvBtn.setAttribute("disabled", true);
+  xlsxBtn.setAttribute("disabled", true);
 
   try {
-    const response = await fetch(`${apiBase}?username=${username}&limit=${limit}`);
-    const json = await response.json();
+    // 🔹 Gọi API thật
+    const apiUrl = `https://tiktok-proxy.thanhnhut201294.workers.dev/?username=${username}&count=${count}`;
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error("API request failed");
 
-    if (!json.data || !json.data.videos) throw new Error("Không có dữ liệu video!");
+    const data = await response.json();
+    if (!data || !data.videos || data.videos.length === 0) {
+      statusDiv.textContent = "❌ Không tìm thấy video nào!";
+      return;
+    }
 
-    videoData = json.data.videos.map(v => ({
-      "Video URL": v.play || "",
-      "Caption": v.title || "",
-      "Ngày đăng": new Date(v.create_time * 1000).toLocaleString("vi-VN"),
-      "View": v.play_count || 0,
-      "Like": v.digg_count || 0,
-      "Bình luận": v.comment_count || 0,
-      "Lưu": v.collect_count || 0,
-      "Chia sẻ": v.share_count || 0,
+    const videos = data.videos.map(v => ({
+      Caption: v.caption || "",
+      Views: v.playCount || 0,
+      Likes: v.diggCount || 0,
+      Comments: v.commentCount || 0,
+      Shares: v.shareCount || 0,
+      Saves: v.collectCount || 0,
+      Date: v.createTime ? new Date(v.createTime * 1000).toLocaleString("vi-VN") : "",
+      VideoURL: v.webVideoUrl || ""
     }));
 
-    renderTable(videoData);
-    statusDiv.textContent = `✅ Đã quét được ${videoData.length} video.`;
-    downloadCsvBtn.disabled = false;
-    downloadXlsxBtn.disabled = false;
-  } catch (err) {
-    console.error(err);
-    statusDiv.textContent = `❌ Lỗi: ${err.message}`;
+    // 🟢 Xuất CSV
+    const csvContent = [
+      ["Caption", "Views", "Likes", "Comments", "Shares", "Saves", "Date", "VideoURL"],
+      ...videos.map(v => Object.values(v))
+    ]
+      .map(row => row.map(String).map(val => `"${val.replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const csvBlob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const csvUrl = URL.createObjectURL(csvBlob);
+    csvBtn.href = csvUrl;
+    csvBtn.download = `${username}_tiktok_data.csv`;
+    csvBtn.removeAttribute("disabled");
+
+    // 🟣 Xuất XLSX
+    const ws = XLSX.utils.json_to_sheet(videos);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "TikTok Data");
+    const xlsxBlob = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const xlsxUrl = URL.createObjectURL(new Blob([xlsxBlob]));
+    xlsxBtn.href = xlsxUrl;
+    xlsxBtn.download = `${username}_tiktok_data.xlsx`;
+    xlsxBtn.removeAttribute("disabled");
+
+    statusDiv.style.color = "#00b894";
+    statusDiv.textContent = `✅ Quét thành công ${videos.length} video!`;
+
+  } catch (error) {
+    console.error(error);
+    statusDiv.textContent = "❌ Lỗi: Failed to fetch (không thể kết nối API)";
   }
-});
-
-function renderTable(data) {
-  if (!data.length) return;
-  const headers = Object.keys(data[0]);
-  let html = "<table><thead><tr>";
-  headers.forEach(h => (html += `<th>${h}</th>`));
-  html += "</tr></thead><tbody>";
-
-  data.forEach(row => {
-    html += "<tr>";
-    headers.forEach(h => {
-      const cell = row[h];
-      if (h === "Video URL")
-        html += `<td><a href="${cell}" target="_blank">Xem</a></td>`;
-      else html += `<td>${cell}</td>`;
-    });
-    html += "</tr>";
-  });
-
-  html += "</tbody></table>";
-  outputDiv.innerHTML = html;
 }
-
-function exportToCsv(data) {
-  const headers = Object.keys(data[0]);
-  const rows = data.map(row =>
-    headers.map(h => `"${String(row[h]).replace(/"/g, '""')}"`).join(",")
-  );
-  const csvContent = [headers.join(","), ...rows].join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "tiktok_data.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function exportToXlsx(data) {
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "TikTok Data");
-  XLSX.writeFile(workbook, "tiktok_data.xlsx");
-}
-
-downloadCsvBtn.addEventListener("click", () => exportToCsv(videoData));
-downloadXlsxBtn.addEventListener("click", () => exportToXlsx(videoData));
