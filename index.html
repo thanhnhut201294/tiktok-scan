@@ -2,37 +2,30 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TikTok Scanner</title>
-
   <link rel="stylesheet" href="style.css" />
-
-  <!-- ✅ Thư viện export Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-  <main class="container">
+  <div class="container">
     <h1>🎬 TikTok Scanner</h1>
-
-    <div class="form">
-      <label>Username:
-        <input id="username" placeholder="vd: tiktokvn" />
-      </label>
-      <label>Số lượng video:
-        <input id="limit" type="number" value="30" min="1" />
-      </label>
+    <div class="input-group">
+      <label>Username:</label>
+      <input type="text" id="username" placeholder="vd: maymanthinhvuong" />
+      <label>Số lượng video:</label>
+      <input type="number" id="count" value="30" />
     </div>
 
-    <div class="actions">
-      <button id="fetchBtn">🚀 Bắt đầu quét</button>
-      <button id="downloadCsvBtn" disabled>Tải CSV</button>
-      <button id="downloadXlsxBtn" disabled>Tải XLSX</button>
+    <div class="buttons">
+      <button id="scanBtn" class="btn primary">🚀 Bắt đầu quét</button>
+      <a id="downloadCsvBtn" class="btn" href="#" disabled>Tải CSV</a>
+      <a id="downloadXlsxBtn" class="btn secondary" href="#" disabled>Tải XLSX</a>
     </div>
 
     <div id="status"></div>
-    <div id="output"></div>
-  </main>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
