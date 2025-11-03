@@ -1,120 +1,72 @@
 body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(120deg, #b2fefa, #0ed2f7);
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to right, #4deaff, #45d6ff);
   margin: 0;
-  padding: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
-  max-width: 1200px;
-  margin: 40px auto;
   background: #fff;
-  border-radius: 16px;
   padding: 40px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 h1 {
-  text-align: center;
-  color: #00796b;
-  margin-bottom: 30px;
+  color: #007777;
+  font-size: 2em;
+  margin-bottom: 20px;
 }
 
-.form {
+.input-group {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-}
-
-label {
-  font-weight: 500;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 input {
-  padding: 8px 12px;
+  padding: 8px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  margin-left: 8px;
-  font-size: 15px;
+  font-size: 1em;
+  width: 200px;
 }
 
-.actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-button {
-  padding: 12px 25px;
-  border: none;
+.btn {
+  padding: 10px 16px;
   border-radius: 10px;
-  font-size: 16px;
-  cursor: pointer;
   font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  margin: 5px;
+  cursor: pointer;
   transition: all 0.2s ease;
+  border: none;
 }
 
-#fetchBtn {
-  background: #00bfa5;
-  color: white;
-}
-#fetchBtn:hover {
-  background: #009e8a;
+.btn.primary {
+  background: #00b894;
+  color: #fff;
 }
 
-#downloadCsvBtn {
-  background: #2196f3;
-  color: white;
-}
-#downloadCsvBtn:hover {
-  background: #1976d2;
+.btn.secondary {
+  background: #6c5ce7;
+  color: #fff;
 }
 
-#downloadXlsxBtn {
-  background: #7c4dff;
-  color: white;
-}
-#downloadXlsxBtn:hover {
-  background: #5e35b1;
+.btn:disabled, .btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 #status {
-  margin: 20px 0;
-  text-align: center;
-  font-weight: 500;
-  color: #00796b;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 30px;
-  font-size: 14px;
-}
-
-th, td {
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: left;
-}
-
-th {
-  background: #b2fefa;
-  color: #004d40;
-}
-
-tr:nth-child(even) {
-  background: #f9f9f9;
-}
-
-a {
-  color: #00796b;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-a:hover {
-  text-decoration: underline;
+  margin-top: 20px;
+  color: #e74c3c;
+  font-weight: 600;
 }
