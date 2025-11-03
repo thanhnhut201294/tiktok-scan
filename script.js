@@ -1,5 +1,5 @@
 // =========================
-// Cấu hình Worker Proxy
+// Cấu hình Worker Proxy ok
 // =========================
 const WORKER_URL = "https://tiktok-proxy.thanhnhut201294.workers.dev/"; // <--- worker của bạn
 
