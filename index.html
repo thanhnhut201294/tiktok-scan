@@ -8,21 +8,43 @@
 </head>
 <body>
   <main>
-    <h1>🎬 TikTok Scanner</h1>
-    <div id="form">
-      <label>Username: <input id="username" placeholder="vd: tiktokvn" /></label>
-      <label>Số lượng video: <input id="limit" type="number" value="30" min="1" /></label>
-      <label>Từ ngày: <input id="start" type="date" /></label>
-      <label>Đến ngày: <input id="end" type="date" /></label>
-      <div class="actions">
-        <button id="fetchBtn">Bắt đầu quét</button>
-        <button id="downloadCsvBtn" disabled>Tải CSV</button>
+    <header>
+      <h1>🎬 TikTok Scanner</h1>
+      <p class="subtitle">Công cụ quét dữ liệu video TikTok nhanh & tiện lợi</p>
+    </header>
+
+    <section id="form">
+      <div class="form-row">
+        <label>Username</label>
+        <input id="username" placeholder="vd: tiktokvn" />
       </div>
-    </div>
+      <div class="form-row">
+        <label>Số lượng video</label>
+        <input id="limit" type="number" value="30" min="1" />
+      </div>
+      <div class="form-row">
+        <label>Từ ngày</label>
+        <input id="start" type="date" />
+      </div>
+      <div class="form-row">
+        <label>Đến ngày</label>
+        <input id="end" type="date" />
+      </div>
+
+      <div class="actions">
+        <button id="fetchBtn" class="btn primary">🚀 Bắt đầu quét</button>
+        <button id="downloadCsvBtn" class="btn secondary" disabled>⬇️ Tải CSV</button>
+      </div>
+    </section>
 
     <div id="status"></div>
     <div id="output"></div>
   </main>
+
+  <footer>
+    <p>© 2025 TikTok Scanner by <strong>thanhnhut201294</strong></p>
+  </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
