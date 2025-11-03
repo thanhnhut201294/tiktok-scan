@@ -114,3 +114,18 @@ function prepareCsvDownload(videos, username) {
   dl.disabled = false;
   dl.onclick = () => setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+// ----- TẠO FILE EXCEL (.xlsx) -----
+const ws = XLSX.utils.json_to_sheet(data);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, "TikTok");
+
+// Ghi ra blob
+const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+const xlsBlob = new Blob([wbout], { type: "application/octet-stream" });
+
+// Tạo URL tải file Excel
+const xlsUrl = URL.createObjectURL(xlsBlob);
+const downloadXlsBtn = document.getElementById("downloadXlsBtn");
+downloadXlsBtn.href = xlsUrl;
+downloadXlsBtn.download = "tiktok_data.xlsx";
+downloadXlsBtn.removeAttribute("disabled");
