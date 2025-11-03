@@ -11,7 +11,7 @@ th, td { border:1px solid #eee; padding:8px; text-align:left; font-size:14px;}
 th { background:#fafafa; }
 #status { margin-top:8px; }
 <style>
-.btn {
+a.btn {
   display: inline-block;
   padding: 8px 14px;
   background: #007bff;
@@ -19,8 +19,9 @@ th { background:#fafafa; }
   border-radius: 6px;
   text-decoration: none;
 }
-.btn[disabled] {
-  opacity: 0.5;
+a.btn.disabled {
   pointer-events: none;
+  opacity: 0.5;
 }
+
 </style>
