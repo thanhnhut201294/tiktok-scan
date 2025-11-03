@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TikTok Scanner</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background:#f3f6fb; color:#222; margin:0; padding:40px; }
+    body { font-family:'Segoe UI',sans-serif; background:#f3f6fb; color:#222; margin:0; padding:40px; }
     main { max-width:1000px; margin:auto; background:#fff; padding:24px 32px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
     h1 { text-align:center; color:#007bff; margin-top:0; }
     #form { display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; }
     label { flex:1 1 200px; font-size:14px; }
     input { width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:6px; }
-    .actions { flex:1 1 100%; display:flex; gap:10px; justify-content:center; margin-top:8px; }
-    button { padding:10px 16px; border:none; border-radius:8px; background:#007bff; color:#fff; cursor:pointer; transition:0.2s; }
-    button:hover:not(:disabled){ background:#005ec4; }
-    button:disabled{ opacity:0.6; cursor:not-allowed; }
+    .actions { flex:1 1 100%; display:flex; gap:10px; justify-content:center; margin-top:8px; flex-wrap:wrap; }
+    button, a.download-btn { padding:10px 16px; border:none; border-radius:8px; background:#007bff; color:#fff; cursor:pointer; transition:0.2s; text-decoration:none; display:inline-block; }
+    button:hover:not(:disabled), a.download-btn:hover:not(:disabled) { background:#005ec4; }
+    button:disabled, a.download-btn:disabled { opacity:0.6; pointer-events:none; cursor:not-allowed; }
     #status { margin-top:12px; text-align:center; font-weight:500; }
     table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
     th, td { border:1px solid #eee; padding:8px 10px; text-align:left; }
@@ -22,10 +22,7 @@
     td a { color:#007bff; text-decoration:none; }
     td a:hover { text-decoration:underline; }
     .caption { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px; }
-    @media(max-width:700px){
-      #form{flex-direction:column;}
-      label{width:100%;}
-    }
+    @media(max-width:700px){ #form{flex-direction:column;} label{width:100%;} }
   </style>
 </head>
 <body>
@@ -38,7 +35,7 @@
       <label>Đến ngày:<input id="end" type="date" /></label>
       <div class="actions">
         <button id="fetchBtn">Bắt đầu quét</button>
-        <button id="downloadCsvBtn" disabled>Tải CSV</button>
+        <a id="downloadCsvBtn" class="download-btn" disabled>Tải CSV</a>
         <button id="downloadXlsxBtn" disabled>Tải XLSX</button>
       </div>
     </div>
@@ -47,7 +44,7 @@
     <div id="output"></div>
   </main>
 
-  <!-- SheetJS (xlsx) -->
+  <!-- SheetJS -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
@@ -98,13 +95,15 @@
     const end = document.getElementById('end').value ? new Date(document.getElementById('end').value) : null;
     const status = document.getElementById('status');
     const output = document.getElementById('output');
-    document.getElementById('downloadCsvBtn').disabled = true;
-    document.getElementById('downloadXlsxBtn').disabled = true;
+    const csvBtn = document.getElementById('downloadCsvBtn');
+    const xlsxBtn = document.getElementById('downloadXlsxBtn');
+
+    csvBtn.setAttribute('disabled', '');
+    xlsxBtn.disabled = true;
     output.innerHTML = '';
-
     if (!username || !limit) { alert('Nhập username và số lượng!'); return; }
-    status.textContent = '⏳ Đang tải...';
 
+    status.textContent = '⏳ Đang tải...';
     try {
       const videos = await fetchTikTokVideos(username, limit, start, end);
       status.textContent = `✅ Đã lấy ${videos.length} video.`;
@@ -164,13 +163,15 @@
     ]);
 
     // CSV
-    const csvContent = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csvContent = [headers, ...rows]
+      .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const csvUrl = URL.createObjectURL(blob);
     const csvBtn = document.getElementById('downloadCsvBtn');
     csvBtn.href = csvUrl;
     csvBtn.download = `tiktok_${username}.csv`;
-    csvBtn.disabled = false;
+    csvBtn.removeAttribute('disabled');
     csvBtn.onclick = () => setTimeout(() => URL.revokeObjectURL(csvUrl), 1000);
 
     // XLSX
