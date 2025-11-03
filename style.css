@@ -1,72 +1,100 @@
 body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(to right, #4deaff, #45d6ff);
+  font-family: "Inter", Arial, sans-serif;
+  background: #f5f7fb;
+  color: #222;
   margin: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 20px;
 }
 
-.container {
-  background: #fff;
-  padding: 40px;
-  border-radius: 20px;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+main {
+  max-width: 1000px;
+  margin: 18px auto;
+  background: white;
+  padding: 22px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(12,20,30,0.06);
 }
 
 h1 {
-  color: #007777;
-  font-size: 2em;
-  margin-bottom: 20px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 28px;
 }
 
-.input-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
+label {
+  display: block;
+  margin: 10px 0;
+  font-weight: 500;
 }
 
-input {
-  padding: 8px;
+input[type="text"],
+input[type="number"],
+input[type="date"] {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1em;
-  width: 200px;
+  border: 1px solid #d5dbe9;
+  box-sizing: border-box;
 }
 
-.btn {
-  padding: 10px 16px;
-  border-radius: 10px;
-  font-weight: 600;
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button, .btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
   text-decoration: none;
   display: inline-block;
-  margin: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
+  text-align: center;
+  min-width: 120px;
 }
 
-.btn.primary {
-  background: #00b894;
-  color: #fff;
-}
-
-.btn.secondary {
-  background: #6c5ce7;
-  color: #fff;
-}
-
-.btn:disabled, .btn[disabled] {
-  opacity: 0.5;
+button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
+.btn.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
 #status {
-  margin-top: 20px;
-  color: #e74c3c;
+  margin-top: 16px;
   font-weight: 600;
+  color: #2b6cb0;
+}
+
+#output {
+  margin-top: 14px;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+/* table style */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+th, td {
+  padding: 10px 8px;
+  border: 1px solid #eee;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  background: #fafafa;
+  font-weight: 700;
+}
+a.link {
+  color: #0b61ff;
 }
