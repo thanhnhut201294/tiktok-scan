@@ -5,43 +5,142 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TikTok Scanner</title>
   <style>
-    body { font-family:'Segoe UI',sans-serif; background:#f3f6fb; color:#222; margin:0; padding:40px; }
-    main { max-width:1000px; margin:auto; background:#fff; padding:24px 32px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.05); }
-    h1 { text-align:center; color:#007bff; margin-top:0; }
-    #form { display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; }
-    label { flex:1 1 200px; font-size:14px; }
-    input { width:100%; padding:8px; margin-top:4px; border:1px solid #ccc; border-radius:6px; }
-    .actions { flex:1 1 100%; display:flex; gap:10px; justify-content:center; margin-top:8px; flex-wrap:wrap; }
-    button, a.download-btn { padding:10px 16px; border:none; border-radius:8px; background:#007bff; color:#fff; cursor:pointer; transition:0.2s; text-decoration:none; display:inline-block; }
-    button:hover:not(:disabled), a.download-btn:hover:not(:disabled) { background:#005ec4; }
-    button:disabled, a.download-btn:disabled { opacity:0.6; pointer-events:none; cursor:not-allowed; }
-    #status { margin-top:12px; text-align:center; font-weight:500; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
-    th, td { border:1px solid #eee; padding:8px 10px; text-align:left; }
-    th { background:#f9fafb; }
-    td a { color:#007bff; text-decoration:none; }
-    td a:hover { text-decoration:underline; }
-    .caption { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px; }
-    @media(max-width:700px){ #form{flex-direction:column;} label{width:100%;} }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: #222;
+      margin: 0;
+      padding: 30px;
+    }
+    main {
+      max-width: 1100px;
+      margin: auto;
+      background: #fff;
+      padding: 24px 32px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      text-align: center;
+      color: #007bff;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    #form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    label {
+      font-size: 14px;
+    }
+    input {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 180px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    button,
+    a.download-btn {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      background: #3b82f6;
+      font-size: 14px;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    button:hover:not(:disabled),
+    a.download-btn:hover:not(:disabled) {
+      background: #2563eb;
+    }
+    button:disabled,
+    a.download-btn[disabled] {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    #status {
+      margin-top: 10px;
+      text-align: right;
+      font-size: 14px;
+      color: #555;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    th,
+    td {
+      border: 1px solid #eee;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    th {
+      background: #f9fafb;
+    }
+    td img {
+      width: 60px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    td a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    td a:hover {
+      text-decoration: underline;
+    }
+    .caption {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px;
+    }
+    #note {
+      font-size: 13px;
+      margin-top: 8px;
+      color: #666;
+    }
   </style>
 </head>
 <body>
   <main>
     <h1>🎬 TikTok Scanner</h1>
     <div id="form">
-      <label>Username:<input id="username" placeholder="vd: tiktokvn" /></label>
+      <label>Kênh:<input id="username" placeholder="vd: tiktokvn" /></label>
       <label>Số lượng video:<input id="limit" type="number" value="30" min="1" /></label>
-      <label>Từ ngày:<input id="start" type="date" /></label>
-      <label>Đến ngày:<input id="end" type="date" /></label>
-      <div class="actions">
-        <button id="fetchBtn">Bắt đầu quét</button>
-        <a id="downloadCsvBtn" class="download-btn" disabled>Tải CSV</a>
-        <button id="downloadXlsxBtn" disabled>Tải XLSX</button>
-      </div>
+    </div>
+    <div class="actions">
+      <button id="fetchBtn">🔍 Lấy thông tin</button>
+      <button id="clearBtn">🧹 Xoá bảng</button>
+      <button id="sampleBtn">📋 Dán mẫu</button>
+      <a id="downloadCsvBtn" class="download-btn" disabled>⬇️ Tải CSV</a>
+      <button id="downloadXlsxBtn" disabled>⬇️ Tải XLSX</button>
     </div>
 
-    <div id="status"></div>
+    <div id="status">Sẵn sàng</div>
     <div id="output"></div>
+    <p id="note">
+      Ghi chú: Caption hiển thị rút gọn; file xuất sẽ chứa caption đầy đủ. Throttle 600ms giữa các request để giảm rate-limit.
+    </p>
   </main>
 
   <!-- SheetJS -->
@@ -56,129 +155,170 @@
 
   async function fetchViaWorker(username, cursor, count) {
     const url = new URL(WORKER_URL);
-    url.searchParams.set('unique_id', username);
-    url.searchParams.set('count', count);
-    if (cursor) url.searchParams.set('cursor', cursor);
+    url.searchParams.set("unique_id", username);
+    url.searchParams.set("count", count);
+    if (cursor) url.searchParams.set("cursor", cursor);
     const res = await fetch(url.toString());
-    if (!res.ok) throw new Error('Network error: ' + res.status);
+    if (!res.ok) throw new Error("Network error: " + res.status);
     return res.json();
   }
 
-  async function fetchTikTokVideos(username, maxVideos, startDate, endDate) {
+  async function fetchTikTokVideos(username, maxVideos) {
     const allVideos = [];
     const processedIds = new Set();
-    let cursor = 0, hasMore = true;
+    let cursor = 0,
+      hasMore = true;
     const countPerRequest = 30;
 
     while (hasMore) {
       const data = await fetchViaWorker(username, cursor, countPerRequest);
-      if (!data?.data?.videos) throw new Error('Lỗi API hoặc không có videos');
+      if (!data?.data?.videos)
+        throw new Error("Lỗi API hoặc không có videos");
       for (const v of data.data.videos) {
         if (!v.video_id || processedIds.has(v.video_id)) continue;
-        const postDate = new Date(v.create_time * 1000);
-        if (startDate && endDate && (postDate < startDate || postDate > endDate)) continue;
-        if (allVideos.length >= maxVideos) { hasMore = false; break; }
+        if (allVideos.length >= maxVideos) {
+          hasMore = false;
+          break;
+        }
         allVideos.push(v);
         processedIds.add(v.video_id);
       }
       cursor = data.data.sec_cursor || data.data.cursor || null;
       if (!cursor || allVideos.length >= maxVideos) hasMore = false;
-      else await new Promise(r => setTimeout(r, 400));
+      else await new Promise((r) => setTimeout(r, 600));
     }
     return allVideos;
   }
 
-  document.getElementById('fetchBtn').addEventListener('click', async () => {
-    const username = document.getElementById('username').value.trim();
-    const limit = parseInt(document.getElementById('limit').value);
-    const start = document.getElementById('start').value ? new Date(document.getElementById('start').value) : null;
-    const end = document.getElementById('end').value ? new Date(document.getElementById('end').value) : null;
-    const status = document.getElementById('status');
-    const output = document.getElementById('output');
-    const csvBtn = document.getElementById('downloadCsvBtn');
-    const xlsxBtn = document.getElementById('downloadXlsxBtn');
+  document.getElementById("fetchBtn").addEventListener("click", async () => {
+    const username = document.getElementById("username").value.trim();
+    const limit = parseInt(document.getElementById("limit").value);
+    const status = document.getElementById("status");
+    const output = document.getElementById("output");
+    const csvBtn = document.getElementById("downloadCsvBtn");
+    const xlsxBtn = document.getElementById("downloadXlsxBtn");
 
-    csvBtn.setAttribute('disabled', '');
+    csvBtn.setAttribute("disabled", "");
     xlsxBtn.disabled = true;
-    output.innerHTML = '';
-    if (!username || !limit) { alert('Nhập username và số lượng!'); return; }
+    output.innerHTML = "";
+    if (!username || !limit) {
+      alert("Nhập kênh và số lượng!");
+      return;
+    }
 
-    status.textContent = '⏳ Đang tải...';
+    status.textContent = "⏳ Đang tải...";
     try {
-      const videos = await fetchTikTokVideos(username, limit, start, end);
+      const videos = await fetchTikTokVideos(username, limit);
       status.textContent = `✅ Đã lấy ${videos.length} video.`;
       renderTable(videos, username);
       prepareDownloads(videos, username);
     } catch (e) {
-      status.textContent = '❌ ' + e.message;
+      status.textContent = "❌ " + e.message;
     }
   });
 
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    document.getElementById("output").innerHTML = "";
+    document.getElementById("status").textContent = "Đã xoá bảng.";
+  });
+
+  document.getElementById("sampleBtn").addEventListener("click", () => {
+    document.getElementById("username").value = "tiktokvn";
+    document.getElementById("limit").value = 10;
+  });
+
   function renderTable(videos, username) {
-    const output = document.getElementById('output');
-    const table = document.createElement('table');
+    const output = document.getElementById("output");
+    const table = document.createElement("table");
     table.innerHTML = `
       <tr>
         <th>STT</th>
-        <th>Video URL</th>
+        <th>Ảnh</th>
+        <th>Kênh</th>
         <th>Caption</th>
-        <th>Ngày đăng</th>
-        <th>Views</th>
-        <th>Likes</th>
-        <th>Comments</th>
-        <th>Shares</th>
+        <th>View</th>
+        <th>Like</th>
+        <th>Comment</th>
+        <th>Save</th>
+        <th>Share</th>
+        <th>Link video</th>
+        <th>Trạng thái</th>
       </tr>`;
     videos.forEach((v, i) => {
-      const caption = v.title || '(Không có caption)';
-      const short = caption.length > 80 ? caption.slice(0, 80) + '...' : caption;
-      const tr = document.createElement('tr');
+      const caption = v.title || "(Không có caption)";
+      const short = caption.length > 80 ? caption.slice(0, 80) + "..." : caption;
+      const thumb = v.cover || v.origin_cover || v.dynamic_cover;
+      const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${i + 1}</td>
-        <td><a href="https://www.tiktok.com/@${username}/video/${v.video_id}" target="_blank">Xem</a></td>
+        <td><img src="${thumb}" alt="thumb"></td>
+        <td>@${username}</td>
         <td class="caption" title="${escapeHtml(caption)}">${escapeHtml(short)}</td>
-        <td>${formatDate(v.create_time)}</td>
         <td>${v.play_count || 0}</td>
         <td>${v.digg_count || 0}</td>
         <td>${v.comment_count || 0}</td>
-        <td>${v.share_count || 0}</td>`;
+        <td>${v.collect_count || 0}</td>
+        <td>${v.share_count || 0}</td>
+        <td><a href="https://www.tiktok.com/@${username}/video/${v.video_id}" target="_blank">Xem</a></td>
+        <td>${v.is_ads ? "QC" : "Thường"}</td>`;
       table.appendChild(tr);
     });
-    output.innerHTML = '';
+    output.innerHTML = "";
     output.appendChild(table);
   }
 
   function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    return String(s).replace(/[&<>"']/g, (m) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])
+    );
   }
 
   function prepareDownloads(videos, username) {
     if (!videos.length) return;
-    const headers = ['STT','VideoURL','Caption','Date','Views','Likes','Comments','Shares'];
+    const headers = [
+      "STT",
+      "Kênh",
+      "Caption",
+      "Views",
+      "Likes",
+      "Comments",
+      "Saves",
+      "Shares",
+      "Link",
+      "Trạng thái",
+    ];
     const rows = videos.map((v, i) => [
       i + 1,
+      `@${username}`,
+      v.title || "",
+      v.play_count || 0,
+      v.digg_count || 0,
+      v.comment_count || 0,
+      v.collect_count || 0,
+      v.share_count || 0,
       `https://www.tiktok.com/@${username}/video/${v.video_id}`,
-      v.title || '',
-      formatDate(v.create_time),
-      v.play_count || 0, v.digg_count || 0, v.comment_count || 0, v.share_count || 0
+      v.is_ads ? "QC" : "Thường",
     ]);
 
     // CSV
     const csvContent = [headers, ...rows]
-      .map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+      .map((r) =>
+        r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")
+      )
+      .join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const csvUrl = URL.createObjectURL(blob);
-    const csvBtn = document.getElementById('downloadCsvBtn');
+    const csvBtn = document.getElementById("downloadCsvBtn");
     csvBtn.href = csvUrl;
     csvBtn.download = `tiktok_${username}.csv`;
-    csvBtn.removeAttribute('disabled');
+    csvBtn.removeAttribute("disabled");
     csvBtn.onclick = () => setTimeout(() => URL.revokeObjectURL(csvUrl), 1000);
 
     // XLSX
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'TikTok');
-    const xlsxBtn = document.getElementById('downloadXlsxBtn');
+    XLSX.utils.book_append_sheet(wb, ws, "TikTok");
+    const xlsxBtn = document.getElementById("downloadXlsxBtn");
     xlsxBtn.onclick = () => XLSX.writeFile(wb, `tiktok_${username}.xlsx`);
     xlsxBtn.disabled = false;
   }
