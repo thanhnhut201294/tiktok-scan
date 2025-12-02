@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Data Export - Green Edition</title>
+  <title>TikTok Data Export - Smart Link</title>
   <style>
     :root {
       --primary-color: #014a1d; /* Xanh đậm chủ đạo */
       --primary-hover: #023816;
-      --secondary-color: #218838; /* Xanh lá tươi hơn cho nút download */
+      --secondary-color: #218838; /* Xanh lá tươi */
       --bg-color: #f0f2f5;
       --card-bg: #ffffff;
       --text-color: #333;
@@ -45,7 +45,7 @@
     .log-error { border-left-color: #dc3545 !important; color: #842029 !important; background: #f8d7da !important; }
     .log-loading { border-left-color: var(--primary-color) !important; color: var(--primary-color) !important; background: #e9ecef !important; }
 
-    /* Statistics Dashboard - Updated Design */
+    /* Statistics Dashboard */
     #stats-board { display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
     .stat-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: transform 0.2s;}
     .stat-card:hover { transform: translateY(-2px); border-color: var(--primary-color); }
@@ -53,13 +53,13 @@
     .stat-title { font-size: 13px; text-transform: uppercase; color: #777; font-weight: 600; margin-bottom: 8px; }
     .stat-value { font-size: 18px; font-weight: 600; color: #555; margin-bottom: 8px; }
     
-    /* Điều chỉnh chỉ số trung bình lớn hơn */
+    /* Chỉ số trung bình */
     .stat-avg { 
-        font-size: 16px; /* Chữ to hơn */
+        font-size: 16px; 
         color: var(--primary-color); 
-        font-weight: 800; /* In đậm */
+        font-weight: 800; 
         margin-top: 5px; 
-        background: rgba(1, 74, 29, 0.08); /* Nền xanh nhạt */
+        background: rgba(1, 74, 29, 0.08); 
         display: block; 
         padding: 6px 4px; 
         border-radius: 6px;
@@ -94,8 +94,8 @@
     
     <div class="controls">
       <div class="input-group">
-        <label>Username (ID TikTok)</label>
-        <input id="username" placeholder="Ví dụ: letuankhang2002" value="letuankhang2002" />
+        <label>Link Kênh hoặc ID TikTok</label>
+        <input id="username" placeholder="Ví dụ: https://www.tiktok.com/@letuankhang2002 hoặc letuankhang2002" value="https://www.tiktok.com/@letuankhang2002" />
       </div>
       <div class="input-group">
         <label>Số lượng <span class="hint">(Max 48)</span></label>
@@ -107,7 +107,7 @@
 
     <div id="stats-board"></div>
 
-    <div id="status">Sẵn sàng.</div>
+    <div id="status">Sẵn sàng. Hãy dán link kênh vào ô bên trên.</div>
     <div id="output" class="table-container"></div>
   </main>
 
@@ -127,6 +127,32 @@
       el.className = `log-${type}`;
     }
 
+    // === HÀM MỚI: TÁCH USERNAME TỪ LINK ===
+    function extractUsername(input) {
+        if (!input) return '';
+        let clean = input.trim();
+        
+        // Trường hợp 1: Link đầy đủ chứa @ (https://www.tiktok.com/@username?...)
+        const atIndex = clean.indexOf('@');
+        if (atIndex !== -1) {
+            // Lấy từ sau dấu @
+            let afterAt = clean.substring(atIndex + 1);
+            // Bỏ các tham số sau dấu ? nếu có
+            return afterAt.split('?')[0].split('/')[0];
+        }
+        
+        // Trường hợp 2: Link không có @ (hiếm, dạng tiktok.com/user) hoặc ID thuần
+        if (clean.includes('tiktok.com/')) {
+             // Lấy phần cuối cùng của URL
+             clean = clean.replace(/\/$/, ''); // Bỏ dấu / ở cuối nếu có
+             return clean.split('/').pop();
+        }
+
+        // Trường hợp 3: ID thuần (letuankhang2002)
+        return clean;
+    }
+
+    // Smart Fetch
     async function smartFetch(targetUrl) {
         for (const proxy of PROXY_LIST) {
             try {
@@ -146,17 +172,24 @@
                 if (data.code === -1) throw new Error("Limit Reached");
                 return data; 
             } catch (e) {
-                // Tiếp tục thử proxy khác
+                // Fail silently, try next proxy
             }
         }
         throw new Error("Không thể kết nối Server. Vui lòng thử lại sau vài phút.");
     }
 
-    async function fetchTikTokVideos(username, maxVideos) {
+    // Logic lấy video
+    async function fetchTikTokVideos(rawInput, maxVideos) {
+      // 1. Xử lý Input đầu vào để lấy đúng Username
+      const username = extractUsername(rawInput);
+      if (!username) throw new Error("Không tìm thấy Username hợp lệ!");
+
+      log(`Đang quét dữ liệu cho ID: ${username}...`, 'loading');
+
+      // Giới hạn max 48
       if (maxVideos > 48) {
           maxVideos = 48;
           document.getElementById('limit').value = 48;
-          alert("Tool giới hạn lấy tối đa 48 video gần nhất để đảm bảo ổn định.");
       }
 
       const allVideos = [];
@@ -165,13 +198,13 @@
       let hasMore = true;
 
       while (hasMore) {
-        log(`⏳ Đang tải... Đã lấy: ${allVideos.length}/${maxVideos} video`, 'loading');
+        log(`⏳ Đang tải... Đã lấy: ${allVideos.length}/${maxVideos} video (ID: ${username})`, 'loading');
 
         const targetUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=30&cursor=${cursor}`;
         const data = await smartFetch(targetUrl);
         
         if (!data?.data?.videos) {
-            if(allVideos.length === 0) throw new Error('Không tìm thấy dữ liệu (User Private hoặc Sai ID)');
+            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu cho ID: ${username} (Kênh Riêng tư hoặc Sai Link)`);
             break;
         }
 
@@ -189,10 +222,10 @@
              await new Promise(r => setTimeout(r, 1500)); 
         }
       }
-      return allVideos;
+      return { videos: allVideos, realUsername: username };
     }
 
-    // Render Stats - Điều chỉnh giao diện hiển thị
+    // Render Stats
     function renderStats(videos) {
         const board = document.getElementById('stats-board');
         if (videos.length === 0) {
@@ -232,14 +265,15 @@
         board.style.display = 'grid';
     }
 
+    // Button Handler
     document.getElementById('fetchBtn').addEventListener('click', async () => {
-      const username = document.getElementById('username').value.trim();
+      const rawInput = document.getElementById('username').value; // Lấy nguyên chuỗi nhập vào
       const limit = parseInt(document.getElementById('limit').value);
       const output = document.getElementById('output');
       const dlBtn = document.getElementById('downloadCsvBtn');
       const statsBoard = document.getElementById('stats-board');
 
-      if (!username) return alert('Vui lòng nhập Username!');
+      if (!rawInput) return alert('Vui lòng nhập Link Kênh hoặc ID!');
       
       document.getElementById('fetchBtn').disabled = true;
       dlBtn.disabled = true;
@@ -248,13 +282,15 @@
       currentData = []; 
 
       try {
-        const videos = await fetchTikTokVideos(username, limit);
+        const result = await fetchTikTokVideos(rawInput, limit);
+        const videos = result.videos;
+        const finalUsername = result.realUsername; // Username sau khi đã xử lý
         currentData = videos; 
         
         log(`✅ Hoàn tất! Đã lấy thành công ${videos.length} video.`, 'success');
         
         renderStats(videos);
-        renderTable(videos, username);
+        renderTable(videos, finalUsername);
         
         dlBtn.disabled = false;
       } catch (e) {
@@ -314,11 +350,13 @@
     document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         if (!currentData.length) return;
         
-        const username = document.getElementById('username').value;
+        // Lấy username thực tế từ data dòng đầu tiên để đặt tên file
+        const fileUsername = currentData[0]?.author?.unique_id || 'tiktok_data';
+        
         const headers = ['STT', 'Link Anh', 'Kenh', 'Caption', 'View', 'Like', 'Comment', 'Save', 'Share', 'Link Video', 'Trang thai'];
         
         const rows = currentData.map((v, index) => {
-            const authorName = v.author ? v.author.unique_id : username;
+            const authorName = v.author ? v.author.unique_id : fileUsername;
             const caption = (v.title || '').replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""');
             
             return [
@@ -342,7 +380,7 @@
         
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `TikTok_${username}_${new Date().getTime()}.csv`);
+        link.setAttribute("download", `TikTok_${fileUsername}_${new Date().getTime()}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
