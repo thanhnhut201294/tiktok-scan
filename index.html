@@ -3,120 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Scanner (Direct Browser Mode)</title>
+  <title>TikTok Data Export Pro</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding:20px; background:#f4f5f7; color:#333; }
-    main { max-width:900px; margin: 0 auto; background: #fff; padding: 25px; border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding:20px; background:#f4f5f7; color:#333; }
+    main { max-width:1200px; margin: 0 auto; background: #fff; padding: 25px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     h1 { margin-top:0; text-align: center; color: #fe2c55; display: flex; align-items: center; justify-content: center; gap: 10px;}
     
-    .input-group { margin-bottom: 15px; }
-    label { font-weight: 600; margin-bottom: 5px; display: block; font-size: 14px;}
-    input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+    /* Form input */
+    .controls { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; margin-bottom: 20px; align-items: end;}
+    .input-group { display: flex; flex-direction: column; }
+    label { font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #555;}
+    input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; }
     input:focus { outline: none; border-color: #fe2c55; }
     
-    .actions { display: flex; gap: 10px; margin-top: 20px; }
-    button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor:pointer; font-weight: 700; font-size: 16px; transition: 0.2s; }
+    /* Buttons */
+    button { padding: 10px 20px; border: none; border-radius: 6px; cursor:pointer; font-weight: 600; font-size: 15px; height: 42px; transition: 0.2s; white-space: nowrap;}
     #fetchBtn { background:#fe2c55; color:#fff; }
     #fetchBtn:hover { background:#e0244a; }
-    #fetchBtn:disabled { background:#ccc; cursor: not-allowed; }
+    #fetchBtn:disabled, #downloadCsvBtn:disabled { background:#ccc; cursor: not-allowed; opacity: 0.7;}
     #downloadCsvBtn { background:#00c0b6; color:#fff; }
-    #downloadCsvBtn:disabled { background:#e0e0e0; color:#999; cursor:not-allowed; }
+    #downloadCsvBtn:hover { background:#00a098; }
 
     /* Logger */
-    #status { margin-top:15px; padding: 10px; border-radius: 6px; background: #f0f0f0; font-family: monospace; font-size: 13px; min-height: 40px; white-space: pre-wrap; }
-    .log-info { color: #0056b3; }
-    .log-success { color: #008000; font-weight: bold; }
-    .log-error { color: #d32f2f; }
-    .log-warn { color: #e65100; }
+    #status { margin-bottom:15px; padding: 10px; border-radius: 6px; background: #f8f9fa; font-family: monospace; font-size: 13px; min-height: 20px; color: #333; border-left: 4px solid #ddd;}
+    .log-success { border-left-color: #28a745 !important; color: #155724 !important; background: #d4edda !important; }
+    .log-error { border-left-color: #dc3545 !important; color: #721c24 !important; background: #f8d7da !important; }
+    .log-loading { border-left-color: #007bff !important; color: #004085 !important; background: #cce5ff !important; }
 
     /* Table */
-    .table-responsive { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid #eee; }
-    table { width:100%; border-collapse:collapse; min-width: 700px; }
-    th, td { border-bottom:1px solid #eee; padding:12px 15px; text-align:left; font-size:14px;}
-    th { background:#f9f9f9; color: #555; font-weight: 600; white-space: nowrap; }
-    td img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; vertical-align: middle; margin-right: 10px; }
+    .table-container { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
+    table { width:100%; border-collapse:collapse; min-width: 900px; font-size: 14px; }
+    th { background:#f1f1f2; color: #161823; font-weight: 700; padding: 12px; text-align: left; white-space: nowrap; position: sticky; top: 0;}
+    td { border-bottom:1px solid #f1f1f2; padding: 10px 12px; vertical-align: middle; color: #161823;}
+    tr:hover { background-color: #f8f8f8; }
+    
+    /* Table specific columns */
+    .col-thumb img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; background: #eee; }
+    .col-caption { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .col-status { color: #28a745; font-weight: bold; font-size: 12px; }
     a { color: #fe2c55; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .controls { grid-template-columns: 1fr; }
+      button { width: 100%; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1><span>🎬</span> TikTok Scanner</h1>
+    <h1>TikTok Data Export</h1>
     
-    <div id="form">
+    <div class="controls">
       <div class="input-group">
         <label>Username (ID không có @)</label>
-        <input id="username" placeholder="vd: tiktokvn, datvilla94..." />
+        <input id="username" placeholder="vd: tiktokvn, datvilla94" />
       </div>
       <div class="input-group">
-        <label>Số lượng muốn lấy</label>
-        <input id="limit" type="number" value="30" min="1" placeholder="Số lượng..." />
+        <label>Số lượng</label>
+        <input id="limit" type="number" value="30" min="1" max="1000" />
       </div>
-      
-      <div class="actions">
-        <button id="fetchBtn">Bắt đầu quét</button>
-        <button id="downloadCsvBtn" disabled>Tải Excel</button>
-      </div>
+      <button id="fetchBtn">Quét Data</button>
+      <button id="downloadCsvBtn" disabled>📥 Tải Excel</button>
     </div>
 
     <div id="status">Sẵn sàng.</div>
-    <div id="output" class="table-responsive"></div>
+    <div id="output" class="table-container"></div>
   </main>
 
   <script>
-    // --- CẤU HÌNH ---
+    // === CẤU HÌNH PROXY XOAY VÒNG ===
     const PROXY_LIST = [
-        // Ưu tiên 1: CodeTabs (Thường ổn định nhất cho JSON)
         { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'direct' },
-        // Ưu tiên 2: AllOrigins (Trả về JSON bọc trong contents)
         { url: 'https://api.allorigins.win/get?url=', type: 'wrapped' },
-        // Ưu tiên 3: CorsProxy.io (Chỉ chạy được từ Browser, ko chạy đc từ Worker)
         { url: 'https://corsproxy.io/?', type: 'direct' }
     ];
 
-    function log(msg, type = 'info') {
+    let currentData = []; // Lưu dữ liệu để xuất Excel
+
+    function log(msg, type = 'default') {
       const el = document.getElementById('status');
       el.textContent = msg;
       el.className = `log-${type}`;
     }
 
-    // Hàm gọi API thông minh: Thử từng Proxy cho đến khi được
+    // Hàm gọi API thông minh (Smart Fetch)
     async function smartFetch(targetUrl) {
-        let lastError = null;
-
         for (const proxy of PROXY_LIST) {
             try {
                 const finalUrl = proxy.url + encodeURIComponent(targetUrl);
-                log(`Đang thử kết nối qua kênh: ${new URL(proxy.url).hostname}...`, 'info');
-                
                 const res = await fetch(finalUrl);
-                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+                if (!res.ok) throw new Error('Network Error');
                 
                 let data;
                 if (proxy.type === 'wrapped') {
                     const temp = await res.json();
-                    if(!temp.contents) throw new Error("Proxy không trả về nội dung");
-                    // AllOrigins trả về text trong 'contents', cần parse lại
+                    if(!temp.contents) throw new Error("No contents");
                     data = JSON.parse(temp.contents);
                 } else {
                     data = await res.json();
                 }
 
-                // Kiểm tra logic TikWM
-                if (data.code === -1) {
-                    throw new Error(`Proxy ${new URL(proxy.url).hostname} bị TikWM chặn (Limit).`);
-                }
-                
-                return data; // Thành công -> Thoát vòng lặp trả về data
+                if (data.code === -1) throw new Error("Limit Reached");
+                return data; 
             } catch (e) {
-                console.warn(`Proxy ${proxy.url} thất bại:`, e.message);
-                lastError = e;
-                // Thử proxy tiếp theo...
+                // Thử proxy tiếp theo, không cần log lỗi ra ngoài
             }
         }
-        throw new Error("Tất cả các kênh đều thất bại. Vui lòng thử lại sau 10 phút.");
+        throw new Error("Không thể kết nối Server. Vui lòng thử lại sau vài phút.");
     }
 
-    // Logic chính
+    // Hàm lấy dữ liệu chính
     async function fetchTikTokVideos(username, maxVideos) {
       const allVideos = [];
       const processedIds = new Set();
@@ -124,15 +122,13 @@
       let hasMore = true;
 
       while (hasMore) {
-        log(`Đang tải dữ liệu... Đã lấy: ${allVideos.length}/${maxVideos}`, 'info');
+        log(`⏳ Đang tải... Đã lấy: ${allVideos.length}/${maxVideos} video`, 'loading');
 
         const targetUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=30&cursor=${cursor}`;
-        
-        // Gọi hàm Smart Fetch thay vì fetch thường
         const data = await smartFetch(targetUrl);
         
         if (!data?.data?.videos) {
-            if(allVideos.length === 0) throw new Error('Không tìm thấy video nào (User Private hoặc không tồn tại)');
+            if(allVideos.length === 0) throw new Error('Không tìm thấy dữ liệu (User Private/Sai ID)');
             break;
         }
 
@@ -144,98 +140,138 @@
         }
 
         cursor = data.data.cursor;
-        
         if (!data.data.hasMore || allVideos.length >= maxVideos) {
              hasMore = false;
         } else {
-             // Delay 1.5 giây để an toàn
-             await new Promise(r => setTimeout(r, 1500)); 
+             await new Promise(r => setTimeout(r, 1500)); // Delay để tránh bị chặn
         }
       }
       return allVideos;
     }
 
-    // UI Handlers
+    // Xử lý sự kiện nút bấm
     document.getElementById('fetchBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const limit = parseInt(document.getElementById('limit').value);
       const output = document.getElementById('output');
-      const btn = document.getElementById('fetchBtn');
       const dlBtn = document.getElementById('downloadCsvBtn');
 
-      if (!username || !limit) { alert('Vui lòng nhập đủ thông tin!'); return; }
+      if (!username) return alert('Nhập Username!');
       
-      // Reset
-      output.innerHTML = '';
+      document.getElementById('fetchBtn').disabled = true;
       dlBtn.disabled = true;
-      btn.disabled = true;
-      
+      output.innerHTML = '';
+      currentData = []; // Reset data
+
       try {
         const videos = await fetchTikTokVideos(username, limit);
+        currentData = videos; // Lưu vào biến toàn cục để tải Excel sau
         log(`✅ Thành công! Đã lấy ${videos.length} video.`, 'success');
         renderTable(videos, username);
-        prepareCsvDownload(videos, username);
+        dlBtn.disabled = false;
       } catch (e) {
         log(`❌ Lỗi: ${e.message}`, 'error');
       } finally {
-        btn.disabled = false;
+        document.getElementById('fetchBtn').disabled = false;
       }
     });
 
-    function renderTable(videos, username) {
+    // Vẽ bảng kết quả (Thêm cột STT, Ảnh, Kênh, Save, Trạng thái)
+    function renderTable(videos, inputUsername) {
       const output = document.getElementById('output');
       const table = document.createElement('table');
       table.innerHTML = `
         <thead>
           <tr>
-            <th>Video</th>
-            <th width="40%">Caption</th>
-            <th>Ngày đăng</th>
-            <th>Views</th>
-            <th>Tim</th>
+            <th>STT</th>
+            <th>Ảnh</th>
+            <th>Kênh</th>
+            <th>Caption</th>
+            <th>View</th>
+            <th>Like</th>
             <th>Comment</th>
+            <th>Save</th>
+            <th>Share</th>
+            <th>Link video</th>
+            <th>Trạng thái</th>
           </tr>
         </thead>
         <tbody></tbody>
       `;
       const tbody = table.querySelector('tbody');
-      videos.forEach(v => {
+
+      videos.forEach((v, index) => {
         const tr = document.createElement('tr');
-        const cover = v.cover ? `<img src="${v.cover}">` : '';
+        // Lấy tên kênh từ data hoặc dùng input ban đầu
+        const authorName = v.author ? v.author.unique_id : inputUsername;
+        const caption = v.title || '(Không caption)';
+        const coverUrl = v.origin_cover || v.cover || '';
+
         tr.innerHTML = `
-          <td>
-            ${cover}
-            <a href="https://www.tiktok.com/@${username}/video/${v.video_id}" target="_blank">Link</a>
-          </td>
-          <td>${(v.title || '-').substring(0, 100)}</td>
-          <td>${new Date(v.create_time * 1000).toLocaleString('vi-VN')}</td>
+          <td>${index + 1}</td>
+          <td class="col-thumb">${coverUrl ? `<img src="${coverUrl}" loading="lazy">` : ''}</td>
+          <td>${authorName}</td>
+          <td class="col-caption" title="${caption.replace(/"/g, '&quot;')}">${caption}</td>
           <td>${(v.play_count||0).toLocaleString()}</td>
           <td>${(v.digg_count||0).toLocaleString()}</td>
           <td>${(v.comment_count||0).toLocaleString()}</td>
+          <td>${(v.collect_count||0).toLocaleString()}</td>
+          <td>${(v.share_count||0).toLocaleString()}</td>
+          <td><a href="https://www.tiktok.com/@${authorName}/video/${v.video_id}" target="_blank">Xem</a></td>
+          <td class="col-status">OK</td>
         `;
         tbody.appendChild(tr);
       });
       output.appendChild(table);
     }
 
-    function prepareCsvDownload(videos, username) {
-      const rows = [['Video URL','Caption','Date','Views','Likes','Comments','Shares']];
-      videos.forEach(v => {
-        rows.push([
-          `https://www.tiktok.com/@${username}/video/${v.video_id}`,
-          `"${(v.title||'').replace(/"/g,'""').replace(/(\r\n|\n|\r)/gm,' ')}"`,
-          new Date(v.create_time * 1000).toLocaleString('vi-VN'),
-          v.play_count||0, v.digg_count||0, v.comment_count||0, v.share_count||0
-        ]);
-      });
-      const csv = "\uFEFF" + rows.map(r => r.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const dl = document.getElementById('downloadCsvBtn');
-      dl.href = url;
-      dl.download = `TikTok_${username}.csv`;
-      dl.disabled = false;
-    }
+    // Xử lý tải Excel (Sửa lỗi encoding và format)
+    document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+        if (!currentData.length) return;
+        
+        const username = document.getElementById('username').value;
+        
+        // 1. Tạo Header
+        const headers = ['STT', 'Link Anh', 'Kenh', 'Caption', 'View', 'Like', 'Comment', 'Save', 'Share', 'Link Video', 'Trang thai'];
+        
+        // 2. Map dữ liệu
+        const rows = currentData.map((v, index) => {
+            const authorName = v.author ? v.author.unique_id : username;
+            const caption = (v.title || '').replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""'); // Xử lý xuống dòng và dấu ngoặc kép
+            
+            return [
+                index + 1,
+                v.origin_cover || v.cover || '',
+                authorName,
+                `"${caption}"`, // Bọc caption trong ngoặc kép để Excel hiểu là 1 ô
+                v.play_count || 0,
+                v.digg_count || 0,
+                v.comment_count || 0,
+                v.collect_count || 0, // Chỉ số Save
+                v.share_count || 0,
+                `https://www.tiktok.com/@${authorName}/video/${v.video_id}`,
+                'OK'
+            ];
+        });
+
+        // 3. Ghép thành chuỗi CSV
+        const csvContent = [
+            headers.join(','), 
+            ...rows.map(r => r.join(','))
+        ].join('\n');
+
+        // 4. Tạo Blob với BOM (\uFEFF) để Excel hiển thị đúng tiếng Việt
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        
+        // 5. Tải xuống
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `TikTok_${username}_${new Date().toISOString().slice(0,10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
   </script>
 </body>
 </html>
