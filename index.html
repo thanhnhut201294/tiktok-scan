@@ -10,9 +10,10 @@
     h1 { margin-top:0; text-align: center; color: #fe2c55; display: flex; align-items: center; justify-content: center; gap: 10px;}
     
     /* Form input */
-    .controls { display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; margin-bottom: 20px; align-items: end;}
+    .controls { display: grid; grid-template-columns: 1.5fr 1fr auto auto; gap: 15px; margin-bottom: 20px; align-items: end;}
     .input-group { display: flex; flex-direction: column; }
     label { font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #555;}
+    .hint { font-size: 11px; color: #888; font-weight: normal; margin-left: 5px;}
     input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; }
     input:focus { outline: none; border-color: #fe2c55; }
     
@@ -30,6 +31,13 @@
     .log-error { border-left-color: #dc3545 !important; color: #721c24 !important; background: #f8d7da !important; }
     .log-loading { border-left-color: #007bff !important; color: #004085 !important; background: #cce5ff !important; }
 
+    /* Statistics Dashboard */
+    #stats-board { display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; text-align: center; }
+    .stat-title { font-size: 12px; text-transform: uppercase; color: #666; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .stat-value { font-size: 20px; font-weight: 800; color: #333; }
+    .stat-avg { font-size: 12px; color: #fe2c55; font-weight: 600; margin-top: 4px; background: rgba(254, 44, 85, 0.1); display: inline-block; padding: 2px 8px; border-radius: 12px;}
+
     /* Table */
     .table-container { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
     table { width:100%; border-collapse:collapse; min-width: 900px; font-size: 14px; }
@@ -37,7 +45,6 @@
     td { border-bottom:1px solid #f1f1f2; padding: 10px 12px; vertical-align: middle; color: #161823;}
     tr:hover { background-color: #f8f8f8; }
     
-    /* Table specific columns */
     .col-thumb img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; background: #eee; }
     .col-caption { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .col-status { color: #28a745; font-weight: bold; font-size: 12px; }
@@ -48,6 +55,7 @@
     @media (max-width: 768px) {
       .controls { grid-template-columns: 1fr; }
       button { width: 100%; }
+      #stats-board { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -58,15 +66,18 @@
     <div class="controls">
       <div class="input-group">
         <label>Username (ID không có @)</label>
-        <input id="username" placeholder="vd: tiktokvn, datvilla94" />
+        <input id="username" placeholder="vd: letuankhang2002" />
       </div>
       <div class="input-group">
-        <label>Số lượng</label>
-        <input id="limit" type="number" value="30" min="1" max="1000" />
+        <label>Số lượng <span class="hint">(Tối đa 48 video gần nhất)</span></label>
+        <input id="limit" type="number" value="10" min="1" max="48" />
       </div>
       <button id="fetchBtn">Quét Data</button>
       <button id="downloadCsvBtn" disabled>📥 Tải Excel</button>
     </div>
+
+    <div id="stats-board">
+        </div>
 
     <div id="status">Sẵn sàng.</div>
     <div id="output" class="table-container"></div>
@@ -108,7 +119,7 @@
                 if (data.code === -1) throw new Error("Limit Reached");
                 return data; 
             } catch (e) {
-                // Thử proxy tiếp theo, không cần log lỗi ra ngoài
+                // Thử proxy tiếp theo
             }
         }
         throw new Error("Không thể kết nối Server. Vui lòng thử lại sau vài phút.");
@@ -116,6 +127,13 @@
 
     // Hàm lấy dữ liệu chính
     async function fetchTikTokVideos(username, maxVideos) {
+      // Giới hạn cứng tối đa 48 để tránh quá tải
+      if (maxVideos > 48) {
+          maxVideos = 48;
+          document.getElementById('limit').value = 48;
+          alert("Tool giới hạn lấy tối đa 48 video gần nhất để đảm bảo ổn định.");
+      }
+
       const allVideos = [];
       const processedIds = new Set();
       let cursor = 0;
@@ -143,10 +161,52 @@
         if (!data.data.hasMore || allVideos.length >= maxVideos) {
              hasMore = false;
         } else {
-             await new Promise(r => setTimeout(r, 1500)); // Delay để tránh bị chặn
+             await new Promise(r => setTimeout(r, 1500)); 
         }
       }
       return allVideos;
+    }
+
+    // Hàm tính toán và hiển thị thống kê
+    function renderStats(videos) {
+        const board = document.getElementById('stats-board');
+        if (videos.length === 0) {
+            board.style.display = 'none';
+            return;
+        }
+
+        let totalView = 0, totalLike = 0, totalCmt = 0, totalSave = 0, totalShare = 0;
+
+        videos.forEach(v => {
+            totalView += (v.play_count || 0);
+            totalLike += (v.digg_count || 0);
+            totalCmt  += (v.comment_count || 0);
+            totalSave += (v.collect_count || 0);
+            totalShare += (v.share_count || 0);
+        });
+
+        const count = videos.length;
+        // Hàm format số (ví dụ: 1200 -> 1.200)
+        const fmt = (n) => n.toLocaleString('vi-VN');
+        // Hàm tính trung bình
+        const avg = (total) => Math.round(total / count).toLocaleString('vi-VN');
+
+        const createCard = (title, value, average) => `
+            <div class="stat-card">
+                <div class="stat-title">${title}</div>
+                <div class="stat-value">${fmt(value)}</div>
+                <div class="stat-avg">TB: ${avg(average)}</div>
+            </div>
+        `;
+
+        board.innerHTML = `
+            ${createCard('Tổng Lượt Xem', totalView, totalView)}
+            ${createCard('Tổng Tim', totalLike, totalLike)}
+            ${createCard('Tổng Comment', totalCmt, totalCmt)}
+            ${createCard('Tổng Lưu', totalSave, totalSave)}
+            ${createCard('Tổng Chia Sẻ', totalShare, totalShare)}
+        `;
+        board.style.display = 'grid';
     }
 
     // Xử lý sự kiện nút bấm
@@ -155,19 +215,26 @@
       const limit = parseInt(document.getElementById('limit').value);
       const output = document.getElementById('output');
       const dlBtn = document.getElementById('downloadCsvBtn');
+      const statsBoard = document.getElementById('stats-board');
 
       if (!username) return alert('Nhập Username!');
       
       document.getElementById('fetchBtn').disabled = true;
       dlBtn.disabled = true;
       output.innerHTML = '';
-      currentData = []; // Reset data
+      statsBoard.style.display = 'none'; // Ẩn bảng thống kê cũ
+      currentData = []; 
 
       try {
         const videos = await fetchTikTokVideos(username, limit);
-        currentData = videos; // Lưu vào biến toàn cục để tải Excel sau
+        currentData = videos; 
+        
         log(`✅ Thành công! Đã lấy ${videos.length} video.`, 'success');
+        
+        // Gọi 2 hàm hiển thị: Thống kê & Bảng
+        renderStats(videos);
         renderTable(videos, username);
+        
         dlBtn.disabled = false;
       } catch (e) {
         log(`❌ Lỗi: ${e.message}`, 'error');
@@ -176,7 +243,7 @@
       }
     });
 
-    // Vẽ bảng kết quả (Thêm cột STT, Ảnh, Kênh, Save, Trạng thái)
+    // Vẽ bảng kết quả
     function renderTable(videos, inputUsername) {
       const output = document.getElementById('output');
       const table = document.createElement('table');
@@ -202,7 +269,6 @@
 
       videos.forEach((v, index) => {
         const tr = document.createElement('tr');
-        // Lấy tên kênh từ data hoặc dùng input ban đầu
         const authorName = v.author ? v.author.unique_id : inputUsername;
         const caption = v.title || '(Không caption)';
         const coverUrl = v.origin_cover || v.cover || '';
@@ -225,49 +291,39 @@
       output.appendChild(table);
     }
 
-    // Xử lý tải Excel (Sửa lỗi encoding và format)
+    // Xử lý tải Excel
     document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         if (!currentData.length) return;
         
         const username = document.getElementById('username').value;
-        
-        // 1. Tạo Header
         const headers = ['STT', 'Link Anh', 'Kenh', 'Caption', 'View', 'Like', 'Comment', 'Save', 'Share', 'Link Video', 'Trang thai'];
         
-        // 2. Map dữ liệu
         const rows = currentData.map((v, index) => {
             const authorName = v.author ? v.author.unique_id : username;
-            const caption = (v.title || '').replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""'); // Xử lý xuống dòng và dấu ngoặc kép
+            const caption = (v.title || '').replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""');
             
             return [
                 index + 1,
                 v.origin_cover || v.cover || '',
                 authorName,
-                `"${caption}"`, // Bọc caption trong ngoặc kép để Excel hiểu là 1 ô
+                `"${caption}"`,
                 v.play_count || 0,
                 v.digg_count || 0,
                 v.comment_count || 0,
-                v.collect_count || 0, // Chỉ số Save
+                v.collect_count || 0,
                 v.share_count || 0,
                 `https://www.tiktok.com/@${authorName}/video/${v.video_id}`,
                 'OK'
             ];
         });
 
-        // 3. Ghép thành chuỗi CSV
-        const csvContent = [
-            headers.join(','), 
-            ...rows.map(r => r.join(','))
-        ].join('\n');
-
-        // 4. Tạo Blob với BOM (\uFEFF) để Excel hiển thị đúng tiếng Việt
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         
-        // 5. Tải xuống
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `TikTok_${username}_${new Date().toISOString().slice(0,10)}.csv`);
+        link.setAttribute("download", `TikTok_${username}_stats.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
