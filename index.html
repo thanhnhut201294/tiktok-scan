@@ -4,110 +4,380 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>TikTok Data Export - Smart Link</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --primary-color: #014a1d; /* Xanh đậm chủ đạo */
-      --primary-hover: #023816;
-      --secondary-color: #218838; /* Xanh lá tươi */
-      --bg-color: #f0f2f5;
+      --primary: #ff0050;    /* Đỏ TikTok */
+      --secondary: #00f2ea;  /* Xanh Cyan */
+      --bg-color: #f0f4f8;   /* Nền xám nhạt */
       --card-bg: #ffffff;
-      --text-color: #333;
+      --border-color: #000000;
+      --text-color: #000000;
     }
 
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding:20px; background:var(--bg-color); color:var(--text-color); }
-    main { max-width:1200px; margin: 0 auto; background: var(--card-bg); padding: 25px; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-    
-    /* Header */
-    h1 { margin-top:0; text-align: center; color: var(--primary-color); display: flex; align-items: center; justify-content: center; gap: 10px; border-bottom: 2px solid #eee; padding-bottom: 15px;}
-    
-    /* Form input */
-    .controls { display: grid; grid-template-columns: 1.5fr 1fr auto auto; gap: 15px; margin-bottom: 20px; align-items: end;}
-    .input-group { display: flex; flex-direction: column; }
-    label { font-weight: 700; margin-bottom: 5px; font-size: 13px; color: var(--primary-color);}
-    .hint { font-size: 11px; color: #666; font-weight: normal; margin-left: 5px;}
-    input { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; transition: 0.3s;}
-    input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(1, 74, 29, 0.1); }
-    
-    /* Buttons */
-    button { padding: 10px 20px; border: none; border-radius: 6px; cursor:pointer; font-weight: 600; font-size: 15px; height: 43px; transition: 0.2s; white-space: nowrap; color: #fff;}
-    
-    #fetchBtn { background: var(--primary-color); }
-    #fetchBtn:hover { background: var(--primary-hover); transform: translateY(-1px);}
-    
-    #downloadCsvBtn { background: var(--secondary-color); }
-    #downloadCsvBtn:hover { background: #1e7e34; transform: translateY(-1px);}
-    
-    button:disabled { background:#ccc !important; cursor: not-allowed; opacity: 0.7; transform: none;}
+    * { box-sizing: border-box; }
 
-    /* Logger */
-    #status { margin-bottom:15px; padding: 12px; border-radius: 6px; background: #f8f9fa; font-family: monospace; font-size: 13px; min-height: 20px; color: #333; border-left: 4px solid #ddd;}
-    .log-success { border-left-color: #28a745 !important; color: #0f5132 !important; background: #d1e7dd !important; }
-    .log-error { border-left-color: #dc3545 !important; color: #842029 !important; background: #f8d7da !important; }
-    .log-loading { border-left-color: var(--primary-color) !important; color: var(--primary-color) !important; background: #e9ecef !important; }
-
-    /* Statistics Dashboard */
-    #stats-board { display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-    .stat-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e0e0e0; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: transform 0.2s;}
-    .stat-card:hover { transform: translateY(-2px); border-color: var(--primary-color); }
-    
-    .stat-title { font-size: 13px; text-transform: uppercase; color: #777; font-weight: 600; margin-bottom: 8px; }
-    .stat-value { font-size: 18px; font-weight: 600; color: #555; margin-bottom: 8px; }
-    
-    /* Chỉ số trung bình */
-    .stat-avg { 
-        font-size: 16px; 
-        color: var(--primary-color); 
-        font-weight: 800; 
-        margin-top: 5px; 
-        background: rgba(1, 74, 29, 0.08); 
-        display: block; 
-        padding: 6px 4px; 
-        border-radius: 6px;
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .stat-avg span { font-size: 11px; font-weight: normal; color: #666; margin-right: 3px; }
 
-    /* Table */
-    .table-container { overflow-x: auto; border: 1px solid #e0e0e0; border-radius: 8px; }
-    table { width:100%; border-collapse:collapse; min-width: 900px; font-size: 14px; }
-    th { background: var(--primary-color); color: #fff; font-weight: 600; padding: 12px; text-align: left; white-space: nowrap; position: sticky; top: 0;}
-    td { border-bottom:1px solid #f0f0f0; padding: 10px 12px; vertical-align: middle; color: #333;}
-    tr:nth-child(even) { background-color: #f9f9f9; }
-    tr:hover { background-color: #f1f1f1; }
+    /* --- HOME BUTTON --- */
+    .top-nav {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 15px;
+    }
+
+    .home-btn {
+      text-decoration: none;
+      background: #fff;
+      color: var(--text-color);
+      font-weight: 700;
+      padding: 10px 20px;
+      border: 3px solid var(--border-color);
+      box-shadow: 4px 4px 0px var(--border-color);
+      border-radius: 50px; /* Bo tròn kiểu viên thuốc */
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .home-btn:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px var(--border-color);
+      background: var(--secondary);
+    }
+
+    .home-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--border-color);
+    }
+
+    /* --- MAIN CARD --- */
+    main {
+      width: 100%;
+      max-width: 1000px;
+      background: var(--card-bg);
+      border: 3px solid var(--border-color);
+      box-shadow: 8px 8px 0px var(--border-color);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 40px;
+    }
+
+    /* --- HEADER --- */
+    h1 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 36px;
+      text-align: center;
+      color: var(--primary);
+      text-shadow: 2px 2px 0px #000; /* Hiệu ứng chữ nổi */
+      margin-top: 0;
+      margin-bottom: 30px;
+      border-bottom: 3px dashed var(--border-color);
+      padding-bottom: 20px;
+      letter-spacing: 1px;
+    }
+
+    /* --- CONTROLS FORM --- */
+    .controls {
+      display: grid;
+      grid-template-columns: 2fr 1fr auto auto;
+      gap: 15px;
+      margin-bottom: 30px;
+      align-items: end;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #666;
+      font-weight: 500;
+      text-transform: none;
+      margin-left: 5px;
+    }
+
+    /* Style Input Neubrutalism */
+    input {
+      padding: 12px 15px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      box-shadow: 3px 3px 0px var(--border-color);
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      background-color: #fffde7; /* Vàng nhạt khi focus */
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0px var(--border-color);
+    }
+
+    /* Style Button Neubrutalism */
+    button {
+      padding: 12px 24px;
+      font-family: 'Be Vietnam Pro', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 3px 3px 0px var(--border-color);
+      transition: all 0.15s ease;
+      height: 48px;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    #fetchBtn {
+      background-color: var(--primary);
+      color: #fff;
+    }
+
+    #fetchBtn:hover:not(:disabled) {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px var(--border-color);
+      background-color: #ff3370;
+    }
+
+    #downloadCsvBtn {
+      background-color: var(--secondary);
+      color: #000;
+    }
+
+    #downloadCsvBtn:hover:not(:disabled) {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0px var(--border-color);
+      background-color: #33fff9;
+    }
+
+    button:active:not(:disabled) {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px var(--border-color);
+    }
+
+    button:disabled {
+      background-color: #e0e0e0;
+      color: #888;
+      border-color: #888;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* --- STATS BOARD --- */
+    #stats-board {
+      display: none;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 4px 4px 0px var(--border-color);
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .stat-title {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-avg {
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 4px 10px;
+      display: inline-block;
+      box-shadow: 1px 1px 0px var(--border-color);
+    }
+
+    /* --- LOGGER --- */
+    #status {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      background: #fff;
+      font-weight: 600;
+      box-shadow: 4px 4px 0px #ccc;
+      min-height: 54px;
+      display: flex;
+      align-items: center;
+    }
     
-    .col-thumb img { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
-    .col-caption { max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .col-status { color: var(--secondary-color); font-weight: bold; font-size: 12px; background: #d4edda; padding: 2px 8px; border-radius: 10px; display: inline-block;}
-    a { color: var(--primary-color); text-decoration: none; font-weight: 600; }
-    a:hover { text-decoration: underline; }
+    .log-loading { color: #007bff; }
+    .log-success { color: #009944; }
+    .log-error { color: #ff0050; }
 
-    /* Responsive */
+    /* --- TABLE --- */
+    .table-container {
+      overflow-x: auto;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 4px 4px 0px var(--border-color);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th {
+      background-color: var(--secondary);
+      color: #000;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 15px;
+      border-bottom: 2px solid var(--border-color);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #000;
+      color: #000;
+      font-weight: 500;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    
+    tr:hover {
+      background-color: #fffde7; /* Vàng nhạt khi hover row */
+    }
+
+    /* Table internal elements */
+    .col-thumb img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+    }
+
+    .col-status {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #155724;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      box-shadow: 2px 2px 0px rgba(21, 87, 36, 0.3);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      border-bottom: 2px solid transparent;
+    }
+    a:hover {
+      border-bottom: 2px solid var(--primary);
+    }
+
+    /* --- RESPONSIVE --- */
     @media (max-width: 768px) {
-      .controls { grid-template-columns: 1fr; }
-      button { width: 100%; }
-      #stats-board { grid-template-columns: 1fr 1fr; }
+      .controls {
+        grid-template-columns: 1fr;
+      }
+      button {
+        width: 100%;
+      }
+      #stats-board {
+        grid-template-columns: 1fr 1fr;
+      }
     }
   </style>
 </head>
 <body>
+
+  <nav class="top-nav">
+    <a href="https://thanhnhut201294.github.io/tool/" class="home-btn">
+      <span>↩</span> Quay lại trang chủ
+    </a>
+  </nav>
+
   <main>
-    <h1>📊 TikTok Data Export</h1>
+    <h1>TikTok Data Export - Smart Link</h1>
     
     <div class="controls">
       <div class="input-group">
-        <label>Link Kênh hoặc ID TikTok</label>
-        <input id="username" placeholder="Ví dụ: https://www.tiktok.com/@letuankhang2002 hoặc letuankhang2002" value="https://www.tiktok.com/@letuankhang2002" />
+        <label>Link Kênh / ID TikTok</label>
+        <input id="username" placeholder="Ví dụ: letuankhang2002" value="https://www.tiktok.com/@letuankhang2002" />
       </div>
       <div class="input-group">
         <label>Số lượng <span class="hint">(Max 48)</span></label>
         <input id="limit" type="number" value="10" min="1" max="48" />
       </div>
-      <button id="fetchBtn">🔍 Quét Dữ Liệu</button>
-      <button id="downloadCsvBtn" disabled>📥 Xuất Excel</button>
+      <button id="fetchBtn">🚀 Quét Data</button>
+      <button id="downloadCsvBtn" disabled>💾 Tải Excel</button>
     </div>
 
     <div id="stats-board"></div>
 
-    <div id="status">Sẵn sàng. Hãy dán link kênh vào ô bên trên.</div>
+    <div id="status">👋 Sẵn sàng. Dán link kênh vào ô trên để bắt đầu!</div>
     <div id="output" class="table-container"></div>
   </main>
 
@@ -127,28 +397,25 @@
       el.className = `log-${type}`;
     }
 
-    // === HÀM MỚI: TÁCH USERNAME TỪ LINK ===
+    // === HÀM TÁCH USERNAME TỪ LINK ===
     function extractUsername(input) {
         if (!input) return '';
         let clean = input.trim();
         
-        // Trường hợp 1: Link đầy đủ chứa @ (https://www.tiktok.com/@username?...)
+        // Trường hợp 1: Link đầy đủ chứa @
         const atIndex = clean.indexOf('@');
         if (atIndex !== -1) {
-            // Lấy từ sau dấu @
             let afterAt = clean.substring(atIndex + 1);
-            // Bỏ các tham số sau dấu ? nếu có
             return afterAt.split('?')[0].split('/')[0];
         }
         
-        // Trường hợp 2: Link không có @ (hiếm, dạng tiktok.com/user) hoặc ID thuần
+        // Trường hợp 2: Link tiktok.com/user
         if (clean.includes('tiktok.com/')) {
-             // Lấy phần cuối cùng của URL
-             clean = clean.replace(/\/$/, ''); // Bỏ dấu / ở cuối nếu có
+             clean = clean.replace(/\/$/, '');
              return clean.split('/').pop();
         }
 
-        // Trường hợp 3: ID thuần (letuankhang2002)
+        // Trường hợp 3: ID thuần
         return clean;
     }
 
@@ -180,13 +447,11 @@
 
     // Logic lấy video
     async function fetchTikTokVideos(rawInput, maxVideos) {
-      // 1. Xử lý Input đầu vào để lấy đúng Username
       const username = extractUsername(rawInput);
       if (!username) throw new Error("Không tìm thấy Username hợp lệ!");
 
       log(`Đang quét dữ liệu cho ID: ${username}...`, 'loading');
 
-      // Giới hạn max 48
       if (maxVideos > 48) {
           maxVideos = 48;
           document.getElementById('limit').value = 48;
@@ -250,8 +515,8 @@
         const createCard = (title, value, average) => `
             <div class="stat-card">
                 <div class="stat-title">${title}</div>
-                <div class="stat-value">Tổng: ${fmt(value)}</div>
-                <div class="stat-avg"><span>TB:</span>${avg(average)}</div>
+                <div class="stat-value">${fmt(value)}</div>
+                <div class="stat-avg">TB: ${avg(average)}</div>
             </div>
         `;
 
@@ -267,7 +532,7 @@
 
     // Button Handler
     document.getElementById('fetchBtn').addEventListener('click', async () => {
-      const rawInput = document.getElementById('username').value; // Lấy nguyên chuỗi nhập vào
+      const rawInput = document.getElementById('username').value;
       const limit = parseInt(document.getElementById('limit').value);
       const output = document.getElementById('output');
       const dlBtn = document.getElementById('downloadCsvBtn');
@@ -284,17 +549,17 @@
       try {
         const result = await fetchTikTokVideos(rawInput, limit);
         const videos = result.videos;
-        const finalUsername = result.realUsername; // Username sau khi đã xử lý
+        const finalUsername = result.realUsername;
         currentData = videos; 
         
-        log(`✅ Hoàn tất! Đã lấy thành công ${videos.length} video.`, 'success');
+        log(`✅ Yeah! Đã lấy thành công ${videos.length} video.`, 'success');
         
         renderStats(videos);
         renderTable(videos, finalUsername);
         
         dlBtn.disabled = false;
       } catch (e) {
-        log(`❌ Lỗi: ${e.message}`, 'error');
+        log(`❌ Oops! Lỗi: ${e.message}`, 'error');
       } finally {
         document.getElementById('fetchBtn').disabled = false;
       }
@@ -312,7 +577,7 @@
             <th>Caption</th>
             <th>View</th>
             <th>Like</th>
-            <th>Comment</th>
+            <th>Cmt</th>
             <th>Save</th>
             <th>Share</th>
             <th>Link</th>
@@ -350,7 +615,6 @@
     document.getElementById('downloadCsvBtn').addEventListener('click', () => {
         if (!currentData.length) return;
         
-        // Lấy username thực tế từ data dòng đầu tiên để đặt tên file
         const fileUsername = currentData[0]?.author?.unique_id || 'tiktok_data';
         
         const headers = ['STT', 'Link Anh', 'Kenh', 'Caption', 'View', 'Like', 'Comment', 'Save', 'Share', 'Link Video', 'Trang thai'];
