@@ -11,13 +11,13 @@
 
   <style>
     :root {
-      --primary: #ff0050;    /* Đỏ TikTok */
-      --secondary: #00f2ea;  /* Xanh Cyan Neon */
-      --bg-color: #f0f4f8;   /* Nền xám xanh nhạt */
+      --primary: #ff0050;
+      --secondary: #00f2ea;
+      --bg-color: #f0f4f8;
       --card-bg: #ffffff;
       --border-color: #000000;
-      --border-width: 3px;     /* Độ dày viền */
-      --shadow-offset: 6px;    /* Độ đổ bóng cứng */
+      --border-width: 3px;
+      --shadow-offset: 6px;
     }
 
     * { box-sizing: border-box; }
@@ -34,7 +34,6 @@
       align-items: center;
     }
 
-    /* --- NAVIGATION --- */
     .top-nav {
       width: 100%;
       max-width: 1400px;
@@ -70,7 +69,6 @@
       box-shadow: 0px 0px 0px var(--border-color);
     }
 
-    /* --- MAIN CARD --- */
     main {
       width: 100%;
       max-width: 1400px;
@@ -82,7 +80,6 @@
       margin-bottom: 40px;
     }
 
-    /* --- HEADER --- */
     h1 {
       font-family: 'Fredoka', sans-serif; 
       font-size: 42px;
@@ -95,7 +92,6 @@
       letter-spacing: 1px;
     }
 
-    /* --- CONTROLS FORM --- */
     .controls {
       display: grid;
       grid-template-columns: 2fr 1fr auto auto;
@@ -200,7 +196,6 @@
       transform: none;
     }
 
-    /* --- STATS BOARD --- */
     #stats-board {
       display: none;
       grid-template-columns: repeat(5, 1fr);
@@ -253,7 +248,6 @@
       box-shadow: 2px 2px 0px var(--border-color);
     }
 
-    /* --- LOGGER --- */
     #status {
       margin-bottom: 25px;
       padding: 20px;
@@ -273,7 +267,6 @@
     .log-success { color: #009944; background: #e8f5e9 !important; border-color: #009944 !important; box-shadow: 4px 4px 0 #005c29 !important;}
     .log-error { color: #ff0050; background: #ffebee !important; border-color: #ff0050 !important; box-shadow: 4px 4px 0 #b30038 !important;}
 
-    /* --- TABLE --- */
     .table-container {
       overflow-x: auto;
       border: 3px solid var(--border-color);
@@ -392,16 +385,22 @@
   </main>
 
   <script>
-    // === CẤU HÌNH PROXY XOAY VÒNG (UPDATE MỚI) ===
+    // === CẬP NHẬT DANH SÁCH PROXY MỚI NHẤT (Mạnh mẽ hơn) ===
     const PROXY_LIST = [
-        // Kênh 1: Ổn định nhất hiện tại (Wrapped JSON)
+        // Ưu tiên 1: AllOrigins (JSON Wrapper) - Thường ổn định nhất
         { url: 'https://api.allorigins.win/get?url=', type: 'wrapped' },
-        // Kênh 2: Mới bổ sung (Direct)
-        { url: 'https://thingproxy.freeboard.io/fetch/', type: 'direct' },
-        // Kênh 3: Dự phòng (Direct)
+        
+        // Ưu tiên 2: CorsProxy.io (Rất mạnh, Direct)
+        { url: 'https://corsproxy.io/?', type: 'direct' },
+        
+        // Ưu tiên 3: CodeTabs (Direct)
         { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'direct' },
-        // Kênh 4: Dự phòng cuối (Chỉ chạy trên Browser)
-        { url: 'https://corsproxy.io/?', type: 'direct' }
+        
+        // Ưu tiên 4: ThingProxy (Direct)
+        { url: 'https://thingproxy.freeboard.io/fetch/', type: 'direct' },
+        
+        // Ưu tiên 5: Cors-Anywhere (Backup cuối cùng)
+        { url: 'https://cors-anywhere.herokuapp.com/', type: 'direct' }
     ];
 
     let currentData = []; 
@@ -427,42 +426,45 @@
         return clean;
     }
 
-    // Smart Fetch (Update logic thử lại)
     async function smartFetch(targetUrl) {
+        // Thử lần lượt từng Proxy trong danh sách
         for (const proxy of PROXY_LIST) {
             try {
-                // Log nhẹ để debug ngầm (F12)
-                console.log(`Trying proxy: ${new URL(proxy.url).hostname}`);
+                // Log để kiểm tra (F12 Console)
+                console.log(`Đang thử kết nối qua: ${new URL(proxy.url).hostname}`);
                 
                 const finalUrl = proxy.url + encodeURIComponent(targetUrl);
                 
-                // Thêm timeout 10s để tránh treo quá lâu ở 1 proxy hỏng
+                // Set timeout 8 giây cho mỗi proxy để không đợi quá lâu
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
 
                 const res = await fetch(finalUrl, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!res.ok) throw new Error('Network Error');
+                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
                 
                 let data;
                 if (proxy.type === 'wrapped') {
                     const temp = await res.json();
-                    if(!temp.contents) throw new Error("No contents");
-                    // AllOrigins đôi khi trả về string, đôi khi object
+                    if(!temp.contents) throw new Error("Proxy trả về rỗng");
+                    // Xử lý trường hợp allorigins trả về string hoặc object
                     data = (typeof temp.contents === 'string') ? JSON.parse(temp.contents) : temp.contents;
                 } else {
                     data = await res.json();
                 }
 
-                if (data.code === -1) throw new Error("Limit Reached");
+                // Kiểm tra nếu Tikwm chặn
+                if (data.code === -1) throw new Error("Tikwm chặn IP Proxy này");
+                
+                // Thành công!
                 return data; 
             } catch (e) {
-                console.warn(`Proxy fail: ${e.message}`);
-                // Thử tiếp proxy khác trong vòng lặp
+                console.warn(`Proxy ${proxy.url} thất bại: ${e.message}`);
+                // Thất bại thì vòng lặp tự nhảy sang proxy tiếp theo
             }
         }
-        throw new Error("Tất cả các kênh kết nối đều bận. Vui lòng đợi 5 phút rồi thử lại!");
+        throw new Error("Tất cả cổng kết nối đều đang bận. Vui lòng đợi 5 phút hoặc thử lại sau!");
     }
 
     async function fetchTikTokVideos(rawInput, maxVideos) {
@@ -488,7 +490,7 @@
         const data = await smartFetch(targetUrl);
         
         if (!data?.data?.videos) {
-            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu (Kênh này có thể bị Riêng tư hoặc Server đang bận)`);
+            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu (Kênh Riêng tư hoặc Lỗi Server). Hãy thử lại!`);
             break;
         }
 
@@ -503,7 +505,7 @@
         if (!data.data.hasMore || allVideos.length >= maxVideos) {
              hasMore = false;
         } else {
-             // Tăng delay lên 2 giây để tránh bị chặn IP
+             // Delay an toàn
              await new Promise(r => setTimeout(r, 2000)); 
         }
       }
