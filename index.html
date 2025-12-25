@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
+    /* --- GIỮ NGUYÊN CSS GIAO DIỆN CARTOON --- */
     :root {
       --primary: #ff0050;
       --secondary: #00f2ea;
@@ -385,22 +386,14 @@
   </main>
 
   <script>
-    // === CẬP NHẬT DANH SÁCH PROXY MỚI NHẤT (Mạnh mẽ hơn) ===
+    // === CHIẾN THUẬT PROXY MỚI: ƯU TIÊN SỰ ỔN ĐỊNH ===
+    // Sắp xếp lại thứ tự: CodeTabs thường mạnh nhất cho JSON data lớn
     const PROXY_LIST = [
-        // Ưu tiên 1: AllOrigins (JSON Wrapper) - Thường ổn định nhất
-        { url: 'https://api.allorigins.win/get?url=', type: 'wrapped' },
-        
-        // Ưu tiên 2: CorsProxy.io (Rất mạnh, Direct)
-        { url: 'https://corsproxy.io/?', type: 'direct' },
-        
-        // Ưu tiên 3: CodeTabs (Direct)
         { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'direct' },
-        
-        // Ưu tiên 4: ThingProxy (Direct)
+        { url: 'https://api.allorigins.win/get?url=', type: 'wrapped' },
         { url: 'https://thingproxy.freeboard.io/fetch/', type: 'direct' },
-        
-        // Ưu tiên 5: Cors-Anywhere (Backup cuối cùng)
-        { url: 'https://cors-anywhere.herokuapp.com/', type: 'direct' }
+        // Kênh dự phòng cuối cùng
+        { url: 'https://corsproxy.io/?', type: 'direct' }
     ];
 
     let currentData = []; 
@@ -427,51 +420,47 @@
     }
 
     async function smartFetch(targetUrl) {
-        // Thử lần lượt từng Proxy trong danh sách
+        let lastError = null;
         for (const proxy of PROXY_LIST) {
             try {
-                // Log để kiểm tra (F12 Console)
-                console.log(`Đang thử kết nối qua: ${new URL(proxy.url).hostname}`);
+                // Thêm tham số ngẫu nhiên để tránh Cache của Proxy
+                const antiCache = `&_t=${Date.now()}`;
+                const finalUrl = proxy.url + encodeURIComponent(targetUrl + antiCache);
                 
-                const finalUrl = proxy.url + encodeURIComponent(targetUrl);
+                console.log(`Đang thử kênh: ${new URL(proxy.url).hostname}`);
                 
-                // Set timeout 8 giây cho mỗi proxy để không đợi quá lâu
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(() => controller.abort(), 12000); // Tăng timeout lên 12s
 
                 const res = await fetch(finalUrl, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 
                 let data;
                 if (proxy.type === 'wrapped') {
                     const temp = await res.json();
-                    if(!temp.contents) throw new Error("Proxy trả về rỗng");
-                    // Xử lý trường hợp allorigins trả về string hoặc object
+                    if(!temp.contents) throw new Error("No Content");
                     data = (typeof temp.contents === 'string') ? JSON.parse(temp.contents) : temp.contents;
                 } else {
                     data = await res.json();
                 }
 
-                // Kiểm tra nếu Tikwm chặn
-                if (data.code === -1) throw new Error("Tikwm chặn IP Proxy này");
-                
-                // Thành công!
+                if (data.code === -1) throw new Error("Blocked");
                 return data; 
             } catch (e) {
-                console.warn(`Proxy ${proxy.url} thất bại: ${e.message}`);
-                // Thất bại thì vòng lặp tự nhảy sang proxy tiếp theo
+                console.warn(`Kênh ${proxy.url} thất bại: ${e.message}`);
+                lastError = e;
             }
         }
-        throw new Error("Tất cả cổng kết nối đều đang bận. Vui lòng đợi 5 phút hoặc thử lại sau!");
+        throw new Error("Hệ thống đang quá tải. Vui lòng đợi 1-2 phút rồi thử lại!");
     }
 
     async function fetchTikTokVideos(rawInput, maxVideos) {
       const username = extractUsername(rawInput);
-      if (!username) throw new Error("Không tìm thấy Username hợp lệ!");
+      if (!username) throw new Error("Username không hợp lệ!");
 
-      log(`Đang kết nối server lấy ID: ${username}...`, 'loading');
+      log(`Đang kết nối đến kênh: ${username}...`, 'loading');
 
       if (maxVideos > 48) {
           maxVideos = 48;
@@ -484,29 +473,39 @@
       let hasMore = true;
 
       while (hasMore) {
-        log(`⏳ Đang tải... Đã lấy: ${allVideos.length}/${maxVideos} video (ID: ${username})`, 'loading');
+        log(`⏳ Đang tải... Đã lấy: ${allVideos.length}/${maxVideos} video`, 'loading');
 
         const targetUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=30&cursor=${cursor}`;
-        const data = await smartFetch(targetUrl);
         
-        if (!data?.data?.videos) {
-            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu (Kênh Riêng tư hoặc Lỗi Server). Hãy thử lại!`);
-            break;
-        }
+        try {
+            const data = await smartFetch(targetUrl);
+            
+            if (!data?.data?.videos) {
+                if(allVideos.length === 0) throw new Error(`Không lấy được dữ liệu. Có thể kênh này bị ẩn hoặc Server đang bận.`);
+                break;
+            }
 
-        for (const v of data.data.videos) {
-          if (!v.video_id || processedIds.has(v.video_id)) continue;
-          if (allVideos.length >= maxVideos) { hasMore = false; break; }
-          allVideos.push(v);
-          processedIds.add(v.video_id);
-        }
+            for (const v of data.data.videos) {
+              if (!v.video_id || processedIds.has(v.video_id)) continue;
+              if (allVideos.length >= maxVideos) { hasMore = false; break; }
+              allVideos.push(v);
+              processedIds.add(v.video_id);
+            }
 
-        cursor = data.data.cursor;
-        if (!data.data.hasMore || allVideos.length >= maxVideos) {
-             hasMore = false;
-        } else {
-             // Delay an toàn
-             await new Promise(r => setTimeout(r, 2000)); 
+            cursor = data.data.cursor;
+            if (!data.data.hasMore || allVideos.length >= maxVideos) {
+                hasMore = false;
+            } else {
+                // Delay ngẫu nhiên từ 2-3 giây để giả lập người thật
+                const randomDelay = Math.floor(Math.random() * 1000) + 2000;
+                await new Promise(r => setTimeout(r, randomDelay)); 
+            }
+        } catch (err) {
+            if(allVideos.length > 0) {
+                log(`⚠️ Kết nối bị gián đoạn nhưng đã lấy được ${allVideos.length} video.`, 'success');
+                return { videos: allVideos, realUsername: username };
+            }
+            throw err;
         }
       }
       return { videos: allVideos, realUsername: username };
@@ -572,14 +571,14 @@
         const finalUsername = result.realUsername;
         currentData = videos; 
         
-        log(`✅ Yeah! Đã lấy thành công ${videos.length} video.`, 'success');
+        log(`✅ Thành công! Đã quét được ${videos.length} video.`, 'success');
         
         renderStats(videos);
         renderTable(videos, finalUsername);
         
         dlBtn.disabled = false;
       } catch (e) {
-        log(`❌ Oops! ${e.message}`, 'error');
+        log(`❌ Lỗi: ${e.message}`, 'error');
       } finally {
         document.getElementById('fetchBtn').disabled = false;
       }
