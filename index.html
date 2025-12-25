@@ -23,7 +23,7 @@
     * { box-sizing: border-box; }
 
     body {
-      font-family: 'Be Vietnam Pro', sans-serif; /* Font mặc định cho toàn web */
+      font-family: 'Be Vietnam Pro', sans-serif;
       background-color: var(--bg-color);
       color: #000;
       padding: 20px;
@@ -73,7 +73,7 @@
     /* --- MAIN CARD --- */
     main {
       width: 100%;
-      max-width: 1400px; /* Rộng hơn để chứa 5 cột */
+      max-width: 1400px;
       background: var(--card-bg);
       border: var(--border-width) solid var(--border-color);
       box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--border-color);
@@ -82,7 +82,7 @@
       margin-bottom: 40px;
     }
 
-    /* --- HEADER (Giữ Fredoka cho tên Tool) --- */
+    /* --- HEADER --- */
     h1 {
       font-family: 'Fredoka', sans-serif; 
       font-size: 42px;
@@ -128,7 +128,6 @@
       text-transform: none;
     }
 
-    /* Input & Button dùng Be Vietnam Pro */
     input, button {
       font-family: 'Be Vietnam Pro', sans-serif;
     }
@@ -201,10 +200,10 @@
       transform: none;
     }
 
-    /* --- STATS BOARD (5 Columns Row) --- */
+    /* --- STATS BOARD --- */
     #stats-board {
       display: none;
-      grid-template-columns: repeat(5, 1fr); /* 5 Cột đều nhau */
+      grid-template-columns: repeat(5, 1fr);
       gap: 20px;
       margin-bottom: 40px;
     }
@@ -274,7 +273,7 @@
     .log-success { color: #009944; background: #e8f5e9 !important; border-color: #009944 !important; box-shadow: 4px 4px 0 #005c29 !important;}
     .log-error { color: #ff0050; background: #ffebee !important; border-color: #ff0050 !important; box-shadow: 4px 4px 0 #b30038 !important;}
 
-    /* --- TABLE (Update đường kẻ đồng nhất) --- */
+    /* --- TABLE --- */
     .table-container {
       overflow-x: auto;
       border: 3px solid var(--border-color);
@@ -285,12 +284,12 @@
 
     table {
       width: 100%;
-      border-collapse: collapse; /* Gộp đường viền để tạo lưới liền mạch */
+      border-collapse: collapse;
       min-width: 1000px;
     }
 
     th, td {
-      border: 2px solid var(--border-color); /* Kẻ khung đen cho tất cả các ô */
+      border: 2px solid var(--border-color);
       padding: 15px;
       text-align: left;
       vertical-align: middle;
@@ -313,7 +312,6 @@
     tr:nth-child(even) { background-color: #f8f9fa; }
     tr:hover { background-color: #fffde7; }
 
-    /* Table internal elements */
     .col-thumb img {
       width: 60px;
       height: 60px;
@@ -349,9 +347,7 @@
       background: #ffe6eb;
     }
 
-    /* --- RESPONSIVE --- */
     @media (max-width: 1100px) {
-      /* Tablet: 3 trên, 2 dưới */
       #stats-board {
         grid-template-columns: repeat(3, 1fr);
       }
@@ -360,18 +356,9 @@
     @media (max-width: 768px) {
       main { padding: 20px; }
       h1 { font-size: 28px; }
-      
-      .controls {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
-      
+      .controls { grid-template-columns: 1fr; gap: 15px; }
       button { width: 100%; }
-      
-      /* Mobile: 2 cột */
-      #stats-board {
-        grid-template-columns: 1fr 1fr;
-      }
+      #stats-board { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -400,16 +387,20 @@
     </div>
 
     <div id="stats-board"></div>
-
     <div id="status">👋 Sẵn sàng. Dán link kênh vào ô trên để bắt đầu!</div>
     <div id="output" class="table-container"></div>
   </main>
 
   <script>
-    // === CẤU HÌNH PROXY XOAY VÒNG ===
+    // === CẤU HÌNH PROXY XOAY VÒNG (UPDATE MỚI) ===
     const PROXY_LIST = [
-        { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'direct' },
+        // Kênh 1: Ổn định nhất hiện tại (Wrapped JSON)
         { url: 'https://api.allorigins.win/get?url=', type: 'wrapped' },
+        // Kênh 2: Mới bổ sung (Direct)
+        { url: 'https://thingproxy.freeboard.io/fetch/', type: 'direct' },
+        // Kênh 3: Dự phòng (Direct)
+        { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'direct' },
+        // Kênh 4: Dự phòng cuối (Chỉ chạy trên Browser)
         { url: 'https://corsproxy.io/?', type: 'direct' }
     ];
 
@@ -421,41 +412,45 @@
       el.className = `log-${type}`;
     }
 
-    // === HÀM TÁCH USERNAME TỪ LINK ===
     function extractUsername(input) {
         if (!input) return '';
         let clean = input.trim();
-        
-        // Trường hợp 1: Link đầy đủ chứa @
         const atIndex = clean.indexOf('@');
         if (atIndex !== -1) {
             let afterAt = clean.substring(atIndex + 1);
             return afterAt.split('?')[0].split('/')[0];
         }
-        
-        // Trường hợp 2: Link tiktok.com/user
         if (clean.includes('tiktok.com/')) {
              clean = clean.replace(/\/$/, '');
              return clean.split('/').pop();
         }
-
-        // Trường hợp 3: ID thuần
         return clean;
     }
 
-    // Smart Fetch
+    // Smart Fetch (Update logic thử lại)
     async function smartFetch(targetUrl) {
         for (const proxy of PROXY_LIST) {
             try {
+                // Log nhẹ để debug ngầm (F12)
+                console.log(`Trying proxy: ${new URL(proxy.url).hostname}`);
+                
                 const finalUrl = proxy.url + encodeURIComponent(targetUrl);
-                const res = await fetch(finalUrl);
+                
+                // Thêm timeout 10s để tránh treo quá lâu ở 1 proxy hỏng
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const res = await fetch(finalUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 if (!res.ok) throw new Error('Network Error');
                 
                 let data;
                 if (proxy.type === 'wrapped') {
                     const temp = await res.json();
                     if(!temp.contents) throw new Error("No contents");
-                    data = JSON.parse(temp.contents);
+                    // AllOrigins đôi khi trả về string, đôi khi object
+                    data = (typeof temp.contents === 'string') ? JSON.parse(temp.contents) : temp.contents;
                 } else {
                     data = await res.json();
                 }
@@ -463,18 +458,18 @@
                 if (data.code === -1) throw new Error("Limit Reached");
                 return data; 
             } catch (e) {
-                // Fail silently, try next proxy
+                console.warn(`Proxy fail: ${e.message}`);
+                // Thử tiếp proxy khác trong vòng lặp
             }
         }
-        throw new Error("Không thể kết nối Server. Vui lòng thử lại sau vài phút.");
+        throw new Error("Tất cả các kênh kết nối đều bận. Vui lòng đợi 5 phút rồi thử lại!");
     }
 
-    // Logic lấy video
     async function fetchTikTokVideos(rawInput, maxVideos) {
       const username = extractUsername(rawInput);
       if (!username) throw new Error("Không tìm thấy Username hợp lệ!");
 
-      log(`Đang quét dữ liệu cho ID: ${username}...`, 'loading');
+      log(`Đang kết nối server lấy ID: ${username}...`, 'loading');
 
       if (maxVideos > 48) {
           maxVideos = 48;
@@ -493,7 +488,7 @@
         const data = await smartFetch(targetUrl);
         
         if (!data?.data?.videos) {
-            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu cho ID: ${username} (Kênh Riêng tư hoặc Sai Link)`);
+            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu (Kênh này có thể bị Riêng tư hoặc Server đang bận)`);
             break;
         }
 
@@ -508,13 +503,13 @@
         if (!data.data.hasMore || allVideos.length >= maxVideos) {
              hasMore = false;
         } else {
-             await new Promise(r => setTimeout(r, 1500)); 
+             // Tăng delay lên 2 giây để tránh bị chặn IP
+             await new Promise(r => setTimeout(r, 2000)); 
         }
       }
       return { videos: allVideos, realUsername: username };
     }
 
-    // Render Stats
     function renderStats(videos) {
         const board = document.getElementById('stats-board');
         if (videos.length === 0) {
@@ -551,10 +546,9 @@
             ${createCard('Lượt Lưu', totalSave, totalSave)}
             ${createCard('Chia Sẻ', totalShare, totalShare)}
         `;
-        board.style.display = 'grid'; // Grid sẽ nhận style từ CSS (5 columns)
+        board.style.display = 'grid';
     }
 
-    // Button Handler
     document.getElementById('fetchBtn').addEventListener('click', async () => {
       const rawInput = document.getElementById('username').value;
       const limit = parseInt(document.getElementById('limit').value);
@@ -583,7 +577,7 @@
         
         dlBtn.disabled = false;
       } catch (e) {
-        log(`❌ Oops! Lỗi: ${e.message}`, 'error');
+        log(`❌ Oops! ${e.message}`, 'error');
       } finally {
         document.getElementById('fetchBtn').disabled = false;
       }
@@ -640,13 +634,11 @@
         if (!currentData.length) return;
         
         const fileUsername = currentData[0]?.author?.unique_id || 'tiktok_data';
-        
         const headers = ['STT', 'Link Anh', 'Kenh', 'Caption', 'View', 'Like', 'Comment', 'Save', 'Share', 'Link Video', 'Trang thai'];
         
         const rows = currentData.map((v, index) => {
             const authorName = v.author ? v.author.unique_id : fileUsername;
             const caption = (v.title || '').replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""');
-            
             return [
                 index + 1,
                 v.origin_cover || v.cover || '',
