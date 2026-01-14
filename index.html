@@ -3,24 +3,24 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Video Scanner V10 (Auto)</title>
+  <title>TikTok Video Scanner V11 (Super Fast)</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* CSS GIAO DIỆN CARTOON (Giữ nguyên) */
+    /* CSS GIAO DIỆN CARTOON */
     :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; --thick:3px; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); padding:20px; display:flex; flex-direction:column; align-items:center; }
-    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; }
+    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; position: relative;}
     h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-shadow:2px 2px 0 #000; margin-bottom:30px; text-align:center; font-size: 32px;}
     .box { display:grid; grid-template-columns:1.5fr 0.5fr auto auto; gap:15px; margin-bottom:30px; }
     input { padding:12px; border:2px solid var(--b); border-radius:10px; font-weight:600; font-family:inherit; }
     button { padding:0 25px; font-weight:700; background:var(--primary); color:#fff; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase;}
     button:active { transform:translate(2px,2px); box-shadow:0 0 0 #000; }
-    button:disabled { background:#ccc; color:#666; box-shadow:none; cursor:not-allowed; }
+    button:disabled { background:#ccc; color:#666; box-shadow:none; cursor:not-allowed; transform:none; }
     #dl { background:var(--secondary); color:#000; }
     #log { margin-bottom:20px; padding:15px; border:2px solid var(--b); border-radius:10px; font-weight:600; text-align:center; display: none; }
     table { width:100%; border-collapse:collapse; margin-top:20px; font-size: 14px;}
     th,td { border:2px solid var(--b); padding:10px; text-align:left; }
-    th { background:var(--secondary); white-space:nowrap; }
+    th { background:var(--secondary); white-space: nowrap; }
     img { width:50px; height:50px; object-fit:cover; border:2px solid var(--b); border-radius:8px; display:block; }
     @media(max-width:768px){ .box{ grid-template-columns:1fr; } }
   </style>
@@ -31,39 +31,54 @@
   </nav>
 
   <main>
-    <h1>TikTok Video Scanner V10</h1>
-    <p style="text-align:center;font-size:13px;color:#666;margin-bottom:20px">
-        ⚡ Sử dụng hệ thống đa nguồn (RSSHub/ProxiTok) để vượt qua chặn IP.
-    </p>
+    <h1>TikTok Scanner V11 (Fix Timeout)</h1>
     <div class="box">
       <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002" />
       <input id="n" type="number" value="10" min="1" max="50" placeholder="Số lượng" />
-      <button id="fetchBtn">🚀 Quét Auto</button>
+      <button id="fetchBtn">🚀 Quét Nhanh</button>
       <button id="dl" disabled>💾 Excel</button>
     </div>
+
     <div id="log"></div>
     <div id="out" style="overflow-x:auto;"></div>
   </main>
 
   <script>
-    // 👇👇👇 DÁN LINK GOOGLE SCRIPT MỚI CỦA BẠN VÀO ĐÂY 👇👇👇
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyJ-KPSVyXOeiqLLMGPiqD2KXfoYeVpAIjRwa5zBQSFfCEiCE1odK0tBStb6kuZS7G/exec";
+    // 👇👇👇 DÁN LINK GOOGLE SCRIPT CỦA BẠN VÀO DƯỚI 👇👇👇
+    // Link phải có đuôi /exec
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLDeH8yZmVN7uohD5zcii-OCh3iOKOzW7BW0UZhJJ0m3H1EhyackfL1rdQ-i8VtAQk/exec"; 
     // 👆👆👆
 
     let data = [];
     const log = (m, c='#fff') => { const e=document.getElementById('log'); e.textContent=m; e.style.background=c; e.style.display='block'; }
 
-    // Hàm gọi API thông qua Proxy để tránh lỗi CORS trên trình duyệt
-    async function fetchViaProxy(url) {
-        // Sử dụng corsproxy.io để gọi Google Script từ trình duyệt mà không bị chặn
-        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
-        const res = await fetch(proxyUrl);
-        return await res.json();
+    // Hàm gọi API thông qua Proxy mạnh
+    async function fetchData(username) {
+        // Thêm tham số ngẫu nhiên để tránh cache
+        const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&_t=${Date.now()}`;
+        
+        // Sử dụng corsproxy.io để gọi Google Script
+        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(gasUrl);
+        
+        try {
+            const res = await fetch(proxyUrl);
+            const text = await res.text();
+
+            // Kiểm tra xem có phải HTML lỗi không
+            if (text.trim().startsWith("<")) {
+                throw new Error("Server Google đang quá tải (Timeout). Hãy thử lại sau 1 phút.");
+            }
+
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error(e.message.includes("JSON") ? "Lỗi kết nối Server" : e.message);
+        }
     }
 
     document.getElementById('fetchBtn').addEventListener('click', async () => {
       const u = document.getElementById('u').value.trim();
       const n = document.getElementById('n').value;
+      
       if(!u) return alert('Nhập ID!');
       
       const btn = document.getElementById('fetchBtn');
@@ -71,21 +86,19 @@
       document.getElementById('dl').disabled = true;
       document.getElementById('out').innerHTML = '';
       data = [];
-      log('⏳ Đang kết nối tới các Server vệ tinh...', '#e3f2fd');
+      log('⏳ Đang kết nối Server vệ tinh (Tối đa 15s)...', '#e3f2fd');
 
       try {
-        // Gọi Google Script
-        const finalUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${u}&count=${n}`;
-        const json = await fetchViaProxy(finalUrl);
+        const json = await fetchData(u);
 
         if (json.code !== 0 || !json.data || !json.data.videos.length) {
-            throw new Error(json.msg || "Không tìm thấy dữ liệu từ các nguồn dự phòng.");
+            throw new Error(json.msg || "Không tìm thấy video nào.");
         }
 
         const videos = json.data.videos.slice(0, n);
         data = videos;
         render(videos);
-        log(`✅ Thành công! Tìm thấy ${videos.length} video từ nguồn mở.`, '#e8f5e9');
+        log(`✅ Thành công! Tìm thấy ${videos.length} video.`, '#e8f5e9');
         document.getElementById('dl').disabled = false;
 
       } catch(e) {
@@ -96,7 +109,7 @@
     });
 
     function render(list) {
-      let h = '<table><tr><th>#</th><th>Ảnh</th><th>Caption</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr>';
+      let h = '<table><tr><th>STT</th><th>Ảnh</th><th>Caption</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr>';
       list.forEach((v,i) => {
         h += `<tr>
           <td>${i+1}</td>
