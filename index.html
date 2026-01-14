@@ -3,32 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Video Scanner V8 (Final)</title>
+  <title>TikTok Data Parser V9</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* CSS GIAO DIỆN CARTOON */
-    :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; }
+    :root { --p:#ff0050; --s:#00f2ea; --bg:#f4f5f7; --b:#000; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); padding:20px; display:flex; flex-direction:column; align-items:center; }
-    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; position: relative;}
-    h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-shadow:2px 2px 0 #000; margin-bottom:30px; text-align:center; font-size: 32px;}
-    .box { display:grid; grid-template-columns:1.5fr 0.5fr auto auto; gap:15px; margin-bottom:30px; }
-    input { padding:12px; border:2px solid var(--b); border-radius:10px; font-weight:600; font-family:inherit; }
-    button { padding:0 25px; font-weight:700; background:var(--primary); color:#fff; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase;}
-    button:active { transform:translate(2px,2px); box-shadow:0 0 0 #000; }
-    button:disabled { background:#ccc; color:#666; box-shadow:none; cursor:not-allowed; transform:none; }
-    #dl { background:var(--secondary); color:#000; }
-    #log { margin-bottom:20px; padding:15px; border:2px solid var(--b); border-radius:10px; font-weight:600; text-align:center; display: none; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; font-size: 14px;}
-    th,td { border:2px solid var(--b); padding:10px; text-align:left; }
-    th { background:var(--secondary); }
-    img { width:50px; height:50px; object-fit:cover; border:2px solid var(--b); border-radius:8px; display:block; }
+    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; }
+    h1 { font-family:'Fredoka',sans-serif; color:var(--p); text-shadow:2px 2px 0 #000; margin-bottom:10px; text-align:center; font-size: 32px;}
+    .desc { text-align: center; margin-bottom: 30px; font-weight: 500; color: #555; font-size: 14px;}
     
-    /* Emergency Box */
-    #emergency { display: none; background: #fff3cd; border: 2px dashed #856404; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-    #emergency textarea { width: 100%; height: 60px; margin: 10px 0; border: 2px solid #000; border-radius: 5px; }
-    .e-btn { background: #000; color: #fff; width: 100%; }
+    .step-box { background: #e3f2fd; border: 2px dashed #1565c0; padding: 20px; border-radius: 15px; margin-bottom: 30px; }
+    .step-title { font-weight: 800; text-transform: uppercase; color: #1565c0; margin-bottom: 10px; display: block; }
+    
+    .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+    input { flex: 1; padding:12px; border:2px solid var(--b); border-radius:10px; font-weight:600; outline: none; }
+    
+    .btn { padding:12px 25px; font-weight:700; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase; text-decoration: none; display: inline-block; text-align: center;}
+    .btn:active { transform:translate(2px,2px); box-shadow:0 0 0 #000; }
+    .btn-link { background: #000; color: #fff; width: 100%; display: block; margin-bottom: 10px;}
+    .btn-parse { background: var(--p); color: #fff; width: 100%; border: none; box-shadow: 4px 4px 0 #000; border: 2px solid #000;}
+    .btn-excel { background: var(--s); color: #000; }
+    .btn:disabled { background: #ccc; color: #666; box-shadow: none; cursor: not-allowed; transform: none;}
 
-    @media(max-width:768px){ .box{ grid-template-columns:1fr; } }
+    textarea { width: 100%; height: 150px; padding: 10px; border: 2px solid #000; border-radius: 10px; margin-bottom: 10px; font-family: monospace; font-size: 12px; }
+
+    /* Kết quả */
+    #stats-board { display:none; grid-template-columns:repeat(5,1fr); gap:15px; margin-bottom:20px; }
+    .stat-card { background:#fff; border:2px solid var(--b); border-radius:10px; padding:15px 5px; text-align:center; box-shadow:4px 4px 0 var(--b); }
+    .stat-value { font-size:20px; font-weight:800; color:#000; }
+    .stat-title { font-size:12px; font-weight:700; color:#555; text-transform:uppercase; }
+
+    table { width:100%; border-collapse:collapse; margin-top:20px; font-size: 13px; min-width: 800px;}
+    th,td { border:2px solid var(--b); padding:10px; text-align:left; }
+    th { background:var(--s); white-space: nowrap; }
+    img { width:40px; height:40px; object-fit:cover; border:2px solid var(--b); border-radius:6px; }
+
+    @media(max-width:768px){ #stats-board{ grid-template-columns:repeat(2,1fr); } }
   </style>
 </head>
 <body>
@@ -37,186 +47,123 @@
   </nav>
 
   <main>
-    <h1>TikTok Video Scanner V8</h1>
-    <div class="box">
-      <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002" />
-      <input id="n" type="number" value="10" min="1" max="50" placeholder="Số lượng" />
-      <button id="fetchBtn">🚀 Quét</button>
-      <button id="dl" disabled>💾 Excel</button>
+    <h1>TikTok Data Parser V9</h1>
+    <p class="desc">Do TikTok bật chế độ bảo mật cao, hãy làm theo 2 bước sau để lấy dữ liệu.</p>
+
+    <div class="step-box">
+        <span class="step-title">Bước 1: Lấy dữ liệu thô</span>
+        <div class="input-row">
+            <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002">
+            <input id="n" type="number" value="30" style="max-width: 80px;" disabled title="Mỗi lần lấy 1 trang (30 video)">
+        </div>
+        <a id="linkBtn" href="#" target="_blank" class="btn btn-link">🔗 Bấm vào đây để mở API TikTok (Tab mới)</a>
+        <p style="font-size: 13px; color: #d32f2f; margin-top: 5px;">
+            ⚠️ <b>Lưu ý:</b> Khi tab mới mở ra, nếu thấy "Just a moment...", hãy chờ 5s hoặc bấm xác thực. <br>
+            Sau khi hiện ra chữ loằng ngoằng, hãy <b>Ctrl+A (Chọn hết)</b> -> <b>Ctrl+C (Copy)</b> rồi quay lại đây.
+        </p>
     </div>
 
-    <div id="emergency">
-        <b style="color:#856404">⚠️ Mạng chặn kết nối tự động!</b><br>
-        1. <a id="e-link" href="#" target="_blank" style="font-weight:bold;color:#ff0050">BẤM VÀO ĐÂY</a> để mở dữ liệu (Tab mới).<br>
-        2. Copy toàn bộ chữ trong đó và dán vào ô dưới rồi bấm nút Đen:
-        <textarea id="e-input" placeholder='Dán dữ liệu vào đây...'></textarea>
-        <button id="e-submit" class="e-btn">⚡ XỬ LÝ DỮ LIỆU DÁN</button>
+    <div class="step-box" style="background: #fff3e0; border-color: #ef6c00;">
+        <span class="step-title" style="color: #ef6c00;">Bước 2: Dán & Phân tích</span>
+        <textarea id="jsonInput" placeholder="Dán toàn bộ nội dung bạn vừa copy vào đây..."></textarea>
+        <button id="parseBtn" class="btn btn-parse">⚡ Phân tích dữ liệu</button>
     </div>
 
-    <div id="log"></div>
-    <div id="out" style="overflow-x:auto;"></div>
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <button id="dl" class="btn btn-excel" disabled>💾 Tải Excel</button>
+    </div>
+
+    <div id="stats-board"></div>
+    <div style="overflow-x: auto;">
+        <div id="out"></div>
+    </div>
   </main>
 
   <script>
-    // 👇👇👇 DÁN LINK CỦA BẠN VÀO DƯỚI (Link phải có đuôi /exec) 👇👇👇
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDaOz4UxHc-VeBhzY3CvLygi24B7dpGcuZOHkwZLaEU20WDdXLIrH6FU3iJ4alM7c/exec"; 
-    // 👆👆👆
+    let currentData = [];
+    const uInput = document.getElementById('u');
+    const linkBtn = document.getElementById('linkBtn');
+    
+    // Tự động cập nhật Link khi gõ ID
+    function updateLink() {
+        const user = uInput.value.trim();
+        if(!user) return;
+        // Link API gốc
+        const url = `https://www.tikwm.com/api/user/posts?unique_id=${user}&count=30&cursor=0`;
+        linkBtn.href = url;
+    }
+    uInput.addEventListener('input', updateLink);
+    updateLink(); // Init
 
-    let data = [];
-    const log = (m, c='#fff') => { const e=document.getElementById('log'); e.textContent=m; e.style.background=c; e.style.display='block'; }
+    // Xử lý nút Phân tích
+    document.getElementById('parseBtn').addEventListener('click', () => {
+        const raw = document.getElementById('jsonInput').value.trim();
+        if(!raw) return alert("Chưa có dữ liệu! Hãy dán vào Bước 2.");
 
-    // Hàm gọi API "Xuyên Tường"
-    async function superFetch(username, count, cursor) {
-        // Tạo URL Google Script
-        const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&count=${count}&cursor=${cursor}&_t=${Date.now()}`;
-        
-        // 1. Thử dùng AllOrigins (Proxy mạnh nhất để bọc Google Script)
         try {
-            console.log("Thử kênh 1: AllOrigins");
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(gasUrl)}`;
-            
-            const controller = new AbortController();
-            setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-            const res = await fetch(proxyUrl, { signal: controller.signal });
-            const json = await res.json();
-            
-            // AllOrigins trả dữ liệu trong field 'contents'
-            if (json.contents) {
-                // Parse lại nội dung bên trong (vì nó là string)
-                return JSON.parse(json.contents);
+            // Kiểm tra xem user có paste nhầm HTML Cloudflare không
+            if(raw.includes("<!DOCTYPE html>") || raw.includes("Just a moment")) {
+                alert("❌ Bạn đang copy trang Chờ của Cloudflare!\n\nHãy quay lại tab đó, đợi nó load xong ra chữ (JSON) rồi mới copy.");
+                return;
             }
-        } catch (e1) {
-            console.warn("Kênh 1 thất bại:", e1);
-        }
 
-        // 2. Thử dùng ThingProxy (Dự phòng)
-        try {
-            console.log("Thử kênh 2: ThingProxy");
-            const proxyUrl = `https://thingproxy.freeboard.io/fetch/${gasUrl}`;
-            const res = await fetch(proxyUrl);
-            return await res.json();
-        } catch (e2) {
-            console.warn("Kênh 2 thất bại:", e2);
-        }
+            const json = JSON.parse(raw);
+            
+            if(!json.data || !json.data.videos) {
+                alert("Không tìm thấy video nào trong dữ liệu này. (Có thể kênh Private hoặc Sai ID)");
+                return;
+            }
 
-        throw new Error("BLOCK"); // Ném lỗi để kích hoạt chế độ Cấp Cứu
+            const videos = json.data.videos;
+            currentData = videos;
+            const username = uInput.value || videos[0].author.unique_id;
+
+            renderStats(videos);
+            renderTable(videos, username);
+            document.getElementById('dl').disabled = false;
+            
+            alert(`✅ Đã quét thành công ${videos.length} video!`);
+
+        } catch (e) {
+            alert("❌ Dữ liệu lỗi! Hãy chắc chắn bạn đã Copy TOÀN BỘ nội dung ở tab kia.");
+        }
+    });
+
+    function renderStats(videos) {
+      const b=document.getElementById('stats-board');
+      let t={v:0, l:0, c:0, s:0, sh:0};
+      videos.forEach(x=>{ t.v+=x.play_count; t.l+=x.digg_count; t.c+=x.comment_count; t.s+=x.collect_count; t.sh+=x.share_count; });
+      const f=n=>n.toLocaleString('vi-VN');
+      const card=(k,v)=>`<div class="stat-card"><div class="stat-title">${k}</div><div class="stat-value">${f(v)}</div></div>`;
+      b.innerHTML=card('Xem',t.v)+card('Tim',t.l)+card('Bình Luận',t.c)+card('Lưu',t.s)+card('Chia Sẻ',t.sh);
+      b.style.display='grid';
     }
 
-    document.getElementById('fetchBtn').addEventListener('click', async () => {
-      const u = document.getElementById('u').value.trim();
-      const n = document.getElementById('n').value;
-      
-      // Ẩn bảng cấp cứu nếu đang hiện
-      document.getElementById('emergency').style.display = 'none';
-      document.getElementById('log').style.display = 'none';
-
-      if(!u) return alert('Nhập ID!');
-      
-      const btn = document.getElementById('fetchBtn');
-      btn.disabled = true;
-      document.getElementById('dl').disabled = true;
-      document.getElementById('out').innerHTML = '';
-      data = [];
-      log('⏳ Đang kết nối Server Google...', '#e3f2fd');
-
-      try {
-        let all = [], cursor = 0, more = true;
-        while(more) {
-          try {
-              // Gọi hàm Super Fetch
-              const json = await superFetch(u, 30, cursor);
-              
-              if(!json.data || !json.data.videos) {
-                 if(all.length === 0) throw new Error("Không tìm thấy video");
-                 break;
-              }
-              
-              for(const v of json.data.videos) {
-                if(all.length < n) all.push(v);
-              }
-              cursor = json.data.cursor;
-              if(!json.data.hasMore || all.length >= n) more = false;
-              log(`Đang tải... ${all.length}/${n} video`);
-              
-              await new Promise(r => setTimeout(r, 1000));
-
-          } catch (err) {
-              if (err.message === "BLOCK") {
-                  throw new Error("BLOCK_DETECTED");
-              } else {
-                  throw err; // Lỗi khác
-              }
-          }
-        }
-        
-        data = all;
-        render(all);
-        log(`✅ Thành công! Đã lấy ${all.length} video.`, '#e8f5e9');
-        document.getElementById('dl').disabled = false;
-
-      } catch(e) {
-        if (e.message === "BLOCK_DETECTED" || e.message.includes("Unexpected token")) {
-            // KÍCH HOẠT CHẾ ĐỘ CẤP CỨU
-            log(`❌ Tự động thất bại. Hãy dùng khung Cấp Cứu bên trên!`, '#fff3cd');
-            const emBox = document.getElementById('emergency');
-            const eLink = document.getElementById('e-link');
-            
-            // Tạo link để người dùng bấm
-            eLink.href = `${GOOGLE_SCRIPT_URL}?unique_id=${u}&count=30`;
-            emBox.style.display = 'block';
-        } else {
-            log(`❌ Lỗi: ${e.message}`, '#ffebee');
-        }
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
-    // Xử lý nút Cấp Cứu
-    document.getElementById('e-submit').addEventListener('click', () => {
-        try {
-            const raw = document.getElementById('e-input').value;
-            const json = JSON.parse(raw);
-            if(json.data && json.data.videos) {
-                const u = document.getElementById('u').value;
-                data = json.data.videos;
-                render(data);
-                log(`✅ Đã khôi phục ${data.length} video từ dữ liệu dán!`, '#e8f5e9');
-                document.getElementById('emergency').style.display = 'none';
-                document.getElementById('dl').disabled = false;
-            } else {
-                alert("Dữ liệu không đúng định dạng!");
-            }
-        } catch(e) {
-            alert("Lỗi: Hãy chắc chắn bạn đã Copy toàn bộ nội dung!");
-        }
-    });
-
-    function render(list) {
+    function renderTable(videos, user) {
       let h = '<table><tr><th>STT</th><th>Ảnh</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Lưu</th><th>Link</th></tr>';
-      list.forEach((v,i) => {
+      videos.forEach((v,i) => {
         h += `<tr>
           <td>${i+1}</td>
           <td><img src="${v.cover}"></td>
           <td>${(v.title||'-').substring(0,50)}</td>
-          <td>${v.play_count}</td>
-          <td>${v.digg_count}</td>
-          <td>${v.comment_count}</td>
-          <td>${v.collect_count}</td>
-          <td><a href="https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}" target="_blank">Xem</a></td>
+          <td>${(v.play_count||0).toLocaleString()}</td>
+          <td>${(v.digg_count||0).toLocaleString()}</td>
+          <td>${(v.comment_count||0).toLocaleString()}</td>
+          <td>${(v.collect_count||0).toLocaleString()}</td>
+          <td><a href="https://www.tiktok.com/@${v.author?.unique_id||user}/video/${v.video_id}" target="_blank">Xem</a></td>
         </tr>`;
       });
       document.getElementById('out').innerHTML = h + '</table>';
     }
 
     document.getElementById('dl').addEventListener('click', () => {
-      if(!data.length) return;
+      if(!currentData.length) return;
+      const u = uInput.value;
       const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Cmt,Luu,LinkVideo\n" + 
-        data.map((v,i) => `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.play_count},${v.digg_count},${v.comment_count},${v.collect_count},https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`).join('\n');
+        currentData.map((v,i) => `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.play_count},${v.digg_count},${v.comment_count},${v.collect_count},https://www.tiktok.com/@${v.author?.unique_id||u}/video/${v.video_id}`).join('\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-      a.download = `TikTok_${document.getElementById('u').value}.csv`;
+      a.download = `TikTok_${u}.csv`;
       a.click();
     });
   </script>
