@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tiktok Get Video From Channel</title>
+  <title>Tiktok Get Video From Channel - Final</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* --- GIỮ NGUYÊN GIAO DIỆN CARTOON --- */
+    /* GIỮ NGUYÊN CSS GIAO DIỆN CARTOON */
     :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f0f4f8; --border:#000; --thick:3px; --shadow:6px; }
     * { box-sizing:border-box; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:#000; padding:20px; margin:0; display:flex; flex-direction:column; align-items:center; }
@@ -66,11 +66,9 @@
   </main>
 
   <script>
-    // =========================================================================
-    // 👇👇👇 DÁN LINK GOOGLE APPS SCRIPT CỦA BẠN VÀO GIỮA 2 DẤU NGOẶC KÉP BÊN DƯỚI 👇👇👇
+    // 👇👇👇 DÁN LINK GOOGLE APPS SCRIPT MỚI CỦA BẠN VÀO DƯỚI 👇👇👇
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDaOz4UxHc-VeBhzY3CvLygi24B7dpGcuZOHkwZLaEU20WDdXLIrH6FU3iJ4alM7c/exec"; 
-    // Ví dụ: "https://script.google.com/macros/s/AKfycbx.../exec"
-    // =========================================================================
+    // 👆👆👆 Hãy đảm bảo bạn đã tạo 'New Deployment' và link có đuôi /exec
 
     let currentData = [];
 
@@ -86,12 +84,23 @@
     }
 
     async function fetchFromGoogle(unique_id, count, cursor) {
-      // Gọi sang Server Google của bạn
-      if(GOOGLE_SCRIPT_URL.includes("DAN_LINK")) {
-          throw new Error("Bạn chưa dán Link Google Apps Script vào code HTML!");
+      // Thêm tham số ngẫu nhiên để tránh Cache
+      const finalUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${unique_id}&count=${count}&cursor=${cursor}&_t=${Date.now()}`;
+      
+      const res = await fetch(finalUrl, {
+          method: 'GET',
+          redirect: 'follow' // Quan trọng để trình duyệt tự động chuyển hướng
+      });
+
+      // Kiểm tra xem phản hồi có phải là HTML lỗi không
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") === -1) {
+          // Nếu không phải JSON (mà là HTML), ném lỗi
+          const text = await res.text();
+          console.error("Lỗi từ Google:", text);
+          throw new Error("Link Google Script chưa đúng hoặc chưa cấp quyền 'Anyone'. Hãy kiểm tra lại bước Deploy!");
       }
-      const finalUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${unique_id}&count=${count}&cursor=${cursor}`;
-      const res = await fetch(finalUrl);
+
       if(!res.ok) throw new Error("Lỗi kết nối Server Google");
       return await res.json();
     }
@@ -121,7 +130,6 @@
         while(hasMore) {
            log(`⏳ Đang tải... Đã lấy ${allVideos.length}/${limit} video`, 'loading');
            
-           // Gọi API qua Google Script
            const data = await fetchFromGoogle(username, 30, cursor);
 
            if(!data || !data.data || !data.data.videos) {
