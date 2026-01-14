@@ -3,26 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Video Scanner V7 (Final)</title>
+  <title>TikTok Video Scanner V8 (Final)</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* GIỮ NGUYÊN CSS GIAO DIỆN CARTOON */
+    /* CSS GIAO DIỆN CARTOON */
     :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); padding:20px; display:flex; flex-direction:column; align-items:center; }
-    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; }
-    h1 { font-family:'Fredoka',sans-serif; color:var(--p); text-shadow:2px 2px 0 #000; margin-bottom:30px; text-align:center; font-size: 32px;}
+    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; position: relative;}
+    h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-shadow:2px 2px 0 #000; margin-bottom:30px; text-align:center; font-size: 32px;}
     .box { display:grid; grid-template-columns:1.5fr 0.5fr auto auto; gap:15px; margin-bottom:30px; }
     input { padding:12px; border:2px solid var(--b); border-radius:10px; font-weight:600; font-family:inherit; }
-    button { padding:0 25px; font-weight:700; background:var(--p); color:#fff; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase;}
+    button { padding:0 25px; font-weight:700; background:var(--primary); color:#fff; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase;}
     button:active { transform:translate(2px,2px); box-shadow:0 0 0 #000; }
     button:disabled { background:#ccc; color:#666; box-shadow:none; cursor:not-allowed; transform:none; }
-    #fetchBtn { background: #ff0050; color: #fff; }
-    #dl { background:#00f2ea; color:#000; }
+    #dl { background:var(--secondary); color:#000; }
     #log { margin-bottom:20px; padding:15px; border:2px solid var(--b); border-radius:10px; font-weight:600; text-align:center; display: none; }
     table { width:100%; border-collapse:collapse; margin-top:20px; font-size: 14px;}
     th,td { border:2px solid var(--b); padding:10px; text-align:left; }
-    th { background:#00f2ea; }
+    th { background:var(--secondary); }
     img { width:50px; height:50px; object-fit:cover; border:2px solid var(--b); border-radius:8px; display:block; }
+    
+    /* Emergency Box */
+    #emergency { display: none; background: #fff3cd; border: 2px dashed #856404; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+    #emergency textarea { width: 100%; height: 60px; margin: 10px 0; border: 2px solid #000; border-radius: 5px; }
+    .e-btn { background: #000; color: #fff; width: 100%; }
+
     @media(max-width:768px){ .box{ grid-template-columns:1fr; } }
   </style>
 </head>
@@ -32,77 +37,80 @@
   </nav>
 
   <main>
-    <h1>TikTok Video Scanner V7</h1>
+    <h1>TikTok Video Scanner V8</h1>
     <div class="box">
       <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002" />
       <input id="n" type="number" value="10" min="1" max="50" placeholder="Số lượng" />
       <button id="fetchBtn">🚀 Quét</button>
       <button id="dl" disabled>💾 Excel</button>
     </div>
+
+    <div id="emergency">
+        <b style="color:#856404">⚠️ Mạng chặn kết nối tự động!</b><br>
+        1. <a id="e-link" href="#" target="_blank" style="font-weight:bold;color:#ff0050">BẤM VÀO ĐÂY</a> để mở dữ liệu (Tab mới).<br>
+        2. Copy toàn bộ chữ trong đó và dán vào ô dưới rồi bấm nút Đen:
+        <textarea id="e-input" placeholder='Dán dữ liệu vào đây...'></textarea>
+        <button id="e-submit" class="e-btn">⚡ XỬ LÝ DỮ LIỆU DÁN</button>
+    </div>
+
     <div id="log"></div>
     <div id="out" style="overflow-x:auto;"></div>
   </main>
 
   <script>
-    // 👇👇👇 DÁN LINK GOOGLE APPS SCRIPT CỦA BẠN VÀO ĐÂY 👇👇👇
-    // Link phải có đuôi /exec
+    // 👇👇👇 DÁN LINK CỦA BẠN VÀO DƯỚI (Link phải có đuôi /exec) 👇👇👇
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDaOz4UxHc-VeBhzY3CvLygi24B7dpGcuZOHkwZLaEU20WDdXLIrH6FU3iJ4alM7c/exec"; 
     // 👆👆👆
 
     let data = [];
     const log = (m, c='#fff') => { const e=document.getElementById('log'); e.textContent=m; e.style.background=c; e.style.display='block'; }
 
-    // Hàm gọi API thông minh 3 lớp
-    async function smartFetch(username, count, cursor) {
-        // Tạo URL cho Google Script
+    // Hàm gọi API "Xuyên Tường"
+    async function superFetch(username, count, cursor) {
+        // Tạo URL Google Script
         const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&count=${count}&cursor=${cursor}&_t=${Date.now()}`;
         
-        // --- LỚP 1: Gọi Google Script trực tiếp ---
+        // 1. Thử dùng AllOrigins (Proxy mạnh nhất để bọc Google Script)
         try {
-            console.log("Thử Lớp 1: Google Direct");
-            const res = await fetch(gasUrl);
-            const contentType = res.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                return await res.json();
-            }
-            throw new Error("Google trả về HTML");
-        } catch (e1) {
-            console.warn("Lớp 1 thất bại:", e1.message);
-        }
-
-        // --- LỚP 2: Gọi Google Script qua Proxy (Sửa lỗi 'Unexpected token <') ---
-        try {
-            console.log("Thử Lớp 2: Google via Proxy");
-            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(gasUrl);
-            const res = await fetch(proxyUrl);
-            const text = await res.text();
+            console.log("Thử kênh 1: AllOrigins");
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(gasUrl)}`;
             
-            // Cố gắng parse JSON từ kết quả proxy
-            try {
-                return JSON.parse(text);
-            } catch (jsonErr) {
-                // Nếu Google trả về HTML redirect, proxy có thể trả về nội dung đó.
-                throw new Error("Proxy trả về HTML");
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+            const res = await fetch(proxyUrl, { signal: controller.signal });
+            const json = await res.json();
+            
+            // AllOrigins trả dữ liệu trong field 'contents'
+            if (json.contents) {
+                // Parse lại nội dung bên trong (vì nó là string)
+                return JSON.parse(json.contents);
             }
-        } catch (e2) {
-            console.warn("Lớp 2 thất bại:", e2.message);
+        } catch (e1) {
+            console.warn("Kênh 1 thất bại:", e1);
         }
 
-        // --- LỚP 3: Gọi trực tiếp TikWM qua Proxy (Backup cuối cùng) ---
+        // 2. Thử dùng ThingProxy (Dự phòng)
         try {
-            console.log("Thử Lớp 3: TikWM via Proxy");
-            const tikUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=${count}&cursor=${cursor}`;
-            const proxyUrl = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(tikUrl);
+            console.log("Thử kênh 2: ThingProxy");
+            const proxyUrl = `https://thingproxy.freeboard.io/fetch/${gasUrl}`;
             const res = await fetch(proxyUrl);
             return await res.json();
-        } catch (e3) {
-            throw new Error("Tất cả các kênh đều bận. Vui lòng thử lại sau!");
+        } catch (e2) {
+            console.warn("Kênh 2 thất bại:", e2);
         }
+
+        throw new Error("BLOCK"); // Ném lỗi để kích hoạt chế độ Cấp Cứu
     }
 
     document.getElementById('fetchBtn').addEventListener('click', async () => {
       const u = document.getElementById('u').value.trim();
       const n = document.getElementById('n').value;
+      
+      // Ẩn bảng cấp cứu nếu đang hiện
+      document.getElementById('emergency').style.display = 'none';
+      document.getElementById('log').style.display = 'none';
+
       if(!u) return alert('Nhập ID!');
       
       const btn = document.getElementById('fetchBtn');
@@ -110,39 +118,79 @@
       document.getElementById('dl').disabled = true;
       document.getElementById('out').innerHTML = '';
       data = [];
-      log('⏳ Đang kết nối hệ thống...', '#e3f2fd');
+      log('⏳ Đang kết nối Server Google...', '#e3f2fd');
 
       try {
         let all = [], cursor = 0, more = true;
         while(more) {
-          // Gọi hàm Smart Fetch
-          const json = await smartFetch(u, 30, cursor);
-          
-          if(!json.data || !json.data.videos) {
-             if(all.length === 0) throw new Error("Không tìm thấy video (Kênh riêng tư hoặc lỗi ID)");
-             break;
+          try {
+              // Gọi hàm Super Fetch
+              const json = await superFetch(u, 30, cursor);
+              
+              if(!json.data || !json.data.videos) {
+                 if(all.length === 0) throw new Error("Không tìm thấy video");
+                 break;
+              }
+              
+              for(const v of json.data.videos) {
+                if(all.length < n) all.push(v);
+              }
+              cursor = json.data.cursor;
+              if(!json.data.hasMore || all.length >= n) more = false;
+              log(`Đang tải... ${all.length}/${n} video`);
+              
+              await new Promise(r => setTimeout(r, 1000));
+
+          } catch (err) {
+              if (err.message === "BLOCK") {
+                  throw new Error("BLOCK_DETECTED");
+              } else {
+                  throw err; // Lỗi khác
+              }
           }
-          
-          for(const v of json.data.videos) {
-            if(all.length < n) all.push(v);
-          }
-          cursor = json.data.cursor;
-          if(!json.data.hasMore || all.length >= n) more = false;
-          log(`Đang tải... ${all.length}/${n} video`);
-          
-          // Delay nhẹ để tránh quá tải
-          await new Promise(r => setTimeout(r, 1000));
         }
         
         data = all;
         render(all);
         log(`✅ Thành công! Đã lấy ${all.length} video.`, '#e8f5e9');
         document.getElementById('dl').disabled = false;
+
       } catch(e) {
-        log(`❌ Lỗi: ${e.message}`, '#ffebee');
+        if (e.message === "BLOCK_DETECTED" || e.message.includes("Unexpected token")) {
+            // KÍCH HOẠT CHẾ ĐỘ CẤP CỨU
+            log(`❌ Tự động thất bại. Hãy dùng khung Cấp Cứu bên trên!`, '#fff3cd');
+            const emBox = document.getElementById('emergency');
+            const eLink = document.getElementById('e-link');
+            
+            // Tạo link để người dùng bấm
+            eLink.href = `${GOOGLE_SCRIPT_URL}?unique_id=${u}&count=30`;
+            emBox.style.display = 'block';
+        } else {
+            log(`❌ Lỗi: ${e.message}`, '#ffebee');
+        }
       } finally {
         btn.disabled = false;
       }
+    });
+
+    // Xử lý nút Cấp Cứu
+    document.getElementById('e-submit').addEventListener('click', () => {
+        try {
+            const raw = document.getElementById('e-input').value;
+            const json = JSON.parse(raw);
+            if(json.data && json.data.videos) {
+                const u = document.getElementById('u').value;
+                data = json.data.videos;
+                render(data);
+                log(`✅ Đã khôi phục ${data.length} video từ dữ liệu dán!`, '#e8f5e9');
+                document.getElementById('emergency').style.display = 'none';
+                document.getElementById('dl').disabled = false;
+            } else {
+                alert("Dữ liệu không đúng định dạng!");
+            }
+        } catch(e) {
+            alert("Lỗi: Hãy chắc chắn bạn đã Copy toàn bộ nội dung!");
+        }
     });
 
     function render(list) {
