@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Channel Scanner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+  <title>TikTok Video Scanner V7 (Final)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    :root { --p:#ff0050; --s:#00f2ea; --bg:#f4f5f7; --b:#000; }
+    /* GIỮ NGUYÊN CSS GIAO DIỆN CARTOON */
+    :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); padding:20px; display:flex; flex-direction:column; align-items:center; }
     main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; }
     h1 { font-family:'Fredoka',sans-serif; color:var(--p); text-shadow:2px 2px 0 #000; margin-bottom:30px; text-align:center; font-size: 32px;}
@@ -15,22 +16,27 @@
     button { padding:0 25px; font-weight:700; background:var(--p); color:#fff; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase;}
     button:active { transform:translate(2px,2px); box-shadow:0 0 0 #000; }
     button:disabled { background:#ccc; color:#666; box-shadow:none; cursor:not-allowed; transform:none; }
-    #dl { background:var(--s); color:#000; }
+    #fetchBtn { background: #ff0050; color: #fff; }
+    #dl { background:#00f2ea; color:#000; }
     #log { margin-bottom:20px; padding:15px; border:2px solid var(--b); border-radius:10px; font-weight:600; text-align:center; display: none; }
     table { width:100%; border-collapse:collapse; margin-top:20px; font-size: 14px;}
     th,td { border:2px solid var(--b); padding:10px; text-align:left; }
-    th { background:var(--s); }
+    th { background:#00f2ea; }
     img { width:50px; height:50px; object-fit:cover; border:2px solid var(--b); border-radius:8px; display:block; }
     @media(max-width:768px){ .box{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
+  <nav style="width:100%;max-width:1000px;display:flex;justify-content:flex-end;margin-bottom:20px;">
+    <a href="https://thanhnhut201294.github.io/tool/" style="text-decoration:none;background:#fff;color:#000;font-weight:700;padding:8px 20px;border:3px solid #000;border-radius:30px;box-shadow:4px 4px 0 #000;">↩ Quay lại</a>
+  </nav>
+
   <main>
-    <h1>TikTok Video Scanner</h1>
+    <h1>TikTok Video Scanner V7</h1>
     <div class="box">
       <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002" />
       <input id="n" type="number" value="10" min="1" max="50" placeholder="Số lượng" />
-      <button id="go">🚀 Quét</button>
+      <button id="fetchBtn">🚀 Quét</button>
       <button id="dl" disabled>💾 Excel</button>
     </div>
     <div id="log"></div>
@@ -38,48 +44,95 @@
   </main>
 
   <script>
-    // 👇👇👇 DÁN LINK GỐC (ĐUÔI /exec) VÀO ĐÂY 👇👇👇
-    const API_URL = "https://script.google.com/macros/s/AKfycbwDaOz4UxHc-VeBhzY3CvLygi24B7dpGcuZOHkwZLaEU20WDdXLIrH6FU3iJ4alM7c/exec";
-    
+    // 👇👇👇 DÁN LINK GOOGLE APPS SCRIPT CỦA BẠN VÀO ĐÂY 👇👇👇
+    // Link phải có đuôi /exec
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwDaOz4UxHc-VeBhzY3CvLygi24B7dpGcuZOHkwZLaEU20WDdXLIrH6FU3iJ4alM7c/exec"; 
+    // 👆👆👆
+
     let data = [];
     const log = (m, c='#fff') => { const e=document.getElementById('log'); e.textContent=m; e.style.background=c; e.style.display='block'; }
 
-    document.getElementById('go').addEventListener('click', async () => {
+    // Hàm gọi API thông minh 3 lớp
+    async function smartFetch(username, count, cursor) {
+        // Tạo URL cho Google Script
+        const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&count=${count}&cursor=${cursor}&_t=${Date.now()}`;
+        
+        // --- LỚP 1: Gọi Google Script trực tiếp ---
+        try {
+            console.log("Thử Lớp 1: Google Direct");
+            const res = await fetch(gasUrl);
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                return await res.json();
+            }
+            throw new Error("Google trả về HTML");
+        } catch (e1) {
+            console.warn("Lớp 1 thất bại:", e1.message);
+        }
+
+        // --- LỚP 2: Gọi Google Script qua Proxy (Sửa lỗi 'Unexpected token <') ---
+        try {
+            console.log("Thử Lớp 2: Google via Proxy");
+            const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(gasUrl);
+            const res = await fetch(proxyUrl);
+            const text = await res.text();
+            
+            // Cố gắng parse JSON từ kết quả proxy
+            try {
+                return JSON.parse(text);
+            } catch (jsonErr) {
+                // Nếu Google trả về HTML redirect, proxy có thể trả về nội dung đó.
+                throw new Error("Proxy trả về HTML");
+            }
+        } catch (e2) {
+            console.warn("Lớp 2 thất bại:", e2.message);
+        }
+
+        // --- LỚP 3: Gọi trực tiếp TikWM qua Proxy (Backup cuối cùng) ---
+        try {
+            console.log("Thử Lớp 3: TikWM via Proxy");
+            const tikUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=${count}&cursor=${cursor}`;
+            const proxyUrl = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(tikUrl);
+            const res = await fetch(proxyUrl);
+            return await res.json();
+        } catch (e3) {
+            throw new Error("Tất cả các kênh đều bận. Vui lòng thử lại sau!");
+        }
+    }
+
+    document.getElementById('fetchBtn').addEventListener('click', async () => {
       const u = document.getElementById('u').value.trim();
       const n = document.getElementById('n').value;
       if(!u) return alert('Nhập ID!');
       
-      const btn = document.getElementById('go');
+      const btn = document.getElementById('fetchBtn');
       btn.disabled = true;
       document.getElementById('dl').disabled = true;
       document.getElementById('out').innerHTML = '';
       data = [];
-      log('⏳ Đang kết nối Server Google...', '#e3f2fd');
+      log('⏳ Đang kết nối hệ thống...', '#e3f2fd');
 
       try {
         let all = [], cursor = 0, more = true;
         while(more) {
-          // Thêm tham số time để tránh cache trình duyệt
-          const res = await fetch(`${API_URL}?unique_id=${u}&count=30&cursor=${cursor}&t=${Date.now()}`);
+          // Gọi hàm Smart Fetch
+          const json = await smartFetch(u, 30, cursor);
           
-          // Kiểm tra nếu trả về HTML lỗi thay vì JSON
-          const contentType = res.headers.get("content-type");
-          if (contentType && contentType.indexOf("application/json") === -1) {
-             throw new Error("Lỗi quyền truy cập! Hãy chắc chắn bạn đã chọn 'Anyone' khi Deploy.");
+          if(!json.data || !json.data.videos) {
+             if(all.length === 0) throw new Error("Không tìm thấy video (Kênh riêng tư hoặc lỗi ID)");
+             break;
           }
-
-          const json = await res.json();
-          if(!json.data || !json.data.videos) break;
           
           for(const v of json.data.videos) {
             if(all.length < n) all.push(v);
           }
           cursor = json.data.cursor;
           if(!json.data.hasMore || all.length >= n) more = false;
-          log(`Đang tải... ${all.length} video`);
+          log(`Đang tải... ${all.length}/${n} video`);
+          
+          // Delay nhẹ để tránh quá tải
+          await new Promise(r => setTimeout(r, 1000));
         }
-        
-        if(!all.length) throw new Error("Không tìm thấy video nào.");
         
         data = all;
         render(all);
@@ -93,7 +146,7 @@
     });
 
     function render(list) {
-      let h = '<table><tr><th>#</th><th>Ảnh</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Lưu</th><th>Link</th></tr>';
+      let h = '<table><tr><th>STT</th><th>Ảnh</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Lưu</th><th>Link</th></tr>';
       list.forEach((v,i) => {
         h += `<tr>
           <td>${i+1}</td>
