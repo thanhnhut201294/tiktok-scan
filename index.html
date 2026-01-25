@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Scanner V16 (HTML Parser)</title>
+  <title>TikTok Scanner V17 (Stable)</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* CSS Giao diện Cartoon */
     :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); padding:20px; display:flex; flex-direction:column; align-items:center; }
     main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; }
@@ -41,8 +40,8 @@
   </nav>
 
   <main>
-    <h1>TikTok Scanner V16</h1>
-    <p style="text-align:center; color:#666; font-size:13px; margin-bottom:20px">🔥 Chế độ HTML Parser: Lấy đầy đủ View/Tim từ ProxiTok</p>
+    <h1>TikTok Scanner V17</h1>
+    <p style="text-align:center; color:#666; font-size:13px; margin-bottom:20px">🔥 Chế độ Hybrid: Tự động view, tim, comment đầy đủ</p>
     
     <div class="box">
       <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002" />
@@ -57,28 +56,42 @@
   </main>
 
   <script>
-    // 👇👇👇 DÁN LINK GOOGLE SCRIPT MỚI CỦA BẠN VÀO ĐÂY (ĐUÔI /exec) 👇👇👇
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1FE5vpwfWMvk9vMJEk6KLHGBludGbOy5TGb1v04PMl8Brx0jCNLu1BBTxU_SS3KkF/exec"; 
+    // 👇👇👇 DÁN LINK CHUẨN (ĐUÔI /exec) CỦA BẠN VÀO ĐÂY 👇👇👇
+    // Link chuẩn phải là: https://script.google.com/macros/s/..../exec
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytIJ5EwtG-7JLowNaU5On2rCyRclah58lzL_zj1AA1Bov_JAywd373Sdgc0ZNtPtn1/exec"; 
     // 👆👆👆
 
     let data = [];
     const log = (m, c='#fff') => { const e=document.getElementById('log'); e.textContent=m; e.style.background=c; e.style.display='block'; }
 
-    async function fetchData(username, count) {
-        // Gọi Google Script qua CorsProxy để tránh lỗi CORS trên trình duyệt
+    // HÀM FETCH MỚI (MẠNH HƠN)
+    async function smartFetch(username, count) {
         const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&count=${count}&_t=${Date.now()}`;
-        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(gasUrl);
         
+        // Cách 1: Thử dùng AllOrigins (Proxy này ổn định hơn corsproxy)
         try {
+            console.log("Đang thử kết nối qua AllOrigins...");
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(gasUrl)}`;
             const res = await fetch(proxyUrl);
-            const text = await res.text();
+            const json = await res.json();
             
-            // Xử lý lỗi nếu Proxy trả về HTML thay vì JSON
-            if (text.trim().startsWith("<")) throw new Error("Server Google Timeout. Hãy thử lại!");
-            
-            return JSON.parse(text);
+            // AllOrigins trả dữ liệu trong field 'contents'
+            if (json.contents) {
+                // Parse nội dung trả về
+                const result = JSON.parse(json.contents);
+                return result;
+            }
         } catch (e) {
-            throw new Error("Lỗi kết nối. Vui lòng thử lại!");
+            console.warn("AllOrigins thất bại:", e);
+        }
+
+        // Cách 2: Nếu AllOrigins lỗi, thử Direct Fetch (dành cho một số trình duyệt cho phép)
+        try {
+            console.log("Đang thử kết nối trực tiếp...");
+            const res = await fetch(gasUrl, { redirect: 'follow' });
+            return await res.json();
+        } catch (e) {
+            throw new Error("Không thể kết nối Server. Vui lòng kiểm tra lại Link Script hoặc thử lại sau.");
         }
     }
 
@@ -87,6 +100,11 @@
       const n = parseInt(document.getElementById('n').value);
       
       if(!u) return alert('Nhập ID!');
+      // Kiểm tra sơ bộ link script
+      if(GOOGLE_SCRIPT_URL.includes("googleusercontent")) {
+          alert("❌ BẠN ĐANG DÙNG LINK SAI!\nHãy quay lại Google Apps Script, bấm Deploy -> Manage -> Copy link ở đó (đuôi /exec).");
+          return;
+      }
       
       const btn = document.getElementById('fetchBtn');
       btn.disabled = true;
@@ -94,20 +112,21 @@
       document.getElementById('out').innerHTML = '';
       document.getElementById('stats').style.display = 'none';
       data = [];
-      log('⏳ Đang phân tích mã nguồn HTML (Mất khoảng 5-8s)...', '#e3f2fd');
+      log('⏳ Đang phân tích dữ liệu (5-10s)...', '#e3f2fd');
 
       try {
-        const json = await fetchData(u, n);
+        const json = await smartFetch(u, n);
 
-        if(json.code === -1) throw new Error(json.msg);
-        if(!json.data || !json.data.videos.length) throw new Error("Không tìm thấy video nào.");
+        if(!json) throw new Error("Server trả về dữ liệu rỗng.");
+        if(json.code === -1) throw new Error(json.msg || "Không tìm thấy video.");
+        if(!json.data || !json.data.videos || json.data.videos.length === 0) throw new Error("Không tìm thấy video nào.");
 
         const videos = json.data.videos.slice(0, n);
         data = videos;
         
         renderStats(videos);
         render(videos);
-        log(`✅ Thành công! Dữ liệu từ: ${new URL(json.source).hostname}`, '#e8f5e9');
+        log(`✅ Thành công! Nguồn: ${json.source || 'Unknown'}`, '#e8f5e9');
         document.getElementById('dl').disabled = false;
 
       } catch(e) {
