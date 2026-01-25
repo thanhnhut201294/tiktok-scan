@@ -3,93 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Boomerang V23 (Fix Local)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>TikTok Analytics Dashboard V25</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #00f2ea; --secondary: #ff0050; --bg: #111; --card: #222; --text: #fff; }
-        body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
-        
-        .container { width: 100%; max-width: 900px; }
+        :root { --primary: #00f2ea; --secondary: #ff0050; --bg: #0f0f13; --card: #18181c; --text: #fff; --border: #2a2a30; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); padding: 0; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         
         /* HEADER */
-        .header-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,242,234,0.1); }
-        h1 { color: var(--secondary); margin: 0 0 10px 0; }
+        header { width: 100%; background: #000; padding: 20px 0; border-bottom: 1px solid var(--border); text-align: center; }
+        h1 { font-family: 'Space Grotesk', sans-serif; margin: 0; font-size: 28px; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* SETUP AREA */
-        .setup-area { background: #1a1a1a; padding: 20px; border-radius: 10px; border: 2px dashed #444; margin: 20px 0; text-align: center; }
+        .container { width: 100%; max-width: 1200px; padding: 30px 20px; }
+
+        /* SETUP BOX */
+        .setup-box { background: rgba(0, 242, 234, 0.05); border: 1px dashed var(--primary); padding: 20px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
         .bookmark-btn {
-            display: inline-block; background: #000; color: var(--primary);
-            text-decoration: none; font-weight: 800; padding: 12px 25px;
-            border-radius: 50px; border: 2px solid var(--primary);
-            cursor: grab; margin-top: 15px; box-shadow: 0 5px 0 #00aaaa; transition: 0.2s;
+            display: inline-block; background: #000; color: #fff; text-decoration: none; font-weight: 700;
+            padding: 12px 25px; border-radius: 50px; border: 2px solid var(--primary);
+            margin-top: 10px; transition: 0.2s; cursor: grab; box-shadow: 0 4px 15px rgba(0, 242, 234, 0.2);
         }
-        .bookmark-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #00aaaa; }
+        .bookmark-btn:hover { background: var(--primary); color: #000; }
+
+        /* CONTROL BAR */
+        .control-bar { display: flex; gap: 15px; background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-bottom: 30px; align-items: center; }
+        input { flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 8px; font-weight: 600; outline: none; font-size: 16px; }
+        button { padding: 15px 30px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; font-size: 14px; text-transform: uppercase; transition: 0.2s; white-space: nowrap; }
         
-        /* CONTROLS */
-        .control-panel { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input { flex: 2; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-weight: bold; outline: none; }
-        button { flex: 1; padding: 15px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap; }
-        #openBtn { background: var(--primary); color: #000; }
-        #pasteBtn { background: #333; color: #fff; border: 1px solid #555; display: none; } /* Nút ẩn, hiện khi lỗi */
-        #dlBtn { background: var(--secondary); color: #fff; }
-        button:disabled { background: #444; color: #777; cursor: not-allowed; }
+        #connectBtn { background: var(--primary); color: #000; }
+        #connectBtn:hover { box-shadow: 0 0 20px rgba(0, 242, 234, 0.4); }
+        
+        #dlBtn { background: var(--secondary); color: #fff; opacity: 0.5; pointer-events: none; }
+        #dlBtn.active { opacity: 1; pointer-events: auto; box-shadow: 0 0 20px rgba(255, 0, 80, 0.4); }
 
-        /* STATUS */
-        #status { text-align: center; margin-bottom: 20px; font-weight: bold; min-height: 24px; color: #aaa; padding: 10px; border-radius: 5px; }
-        .pulse { animation: pulse 1.5s infinite; color: var(--primary) !important; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* STATUS INDICATOR */
+        #status { margin-bottom: 20px; text-align: center; font-size: 14px; color: #888; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .dot { width: 10px; height: 10px; background: #444; border-radius: 50%; display: inline-block; }
+        .dot.listening { background: #00f2ea; animation: pulse 1.5s infinite; }
+        .dot.success { background: #00e676; animation: none; }
+        @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 242, 234, 0.7); } 70% { opacity: 0; box-shadow: 0 0 0 10px rgba(0, 242, 234, 0); } 100% { opacity: 0; box-shadow: 0 0 0 0 rgba(0, 242, 234, 0); } }
 
-        /* TABLE */
-        .table-box { overflow-x: auto; background: var(--card); border-radius: 15px; border: 1px solid #333; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #333; color: var(--primary); padding: 15px; text-align: left; white-space: nowrap; }
-        td { padding: 12px 15px; border-bottom: 1px solid #333; }
-        img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; border: 1px solid #444; }
-        a { color: var(--secondary); text-decoration: none; }
+        /* STATS CARDS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; display: none; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .stat-card h3 { margin: 0 0 10px 0; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card div { font-size: 28px; font-weight: 700; color: #fff; }
+        .stat-card.views div { color: var(--primary); }
+        .stat-card.likes div { color: var(--secondary); }
+
+        /* DATA TABLE */
+        .table-container { background: var(--card); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; display: none; }
+        .table-wrapper { overflow-x: auto; max-height: 600px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+        thead { position: sticky; top: 0; background: #000; z-index: 10; }
+        th { padding: 15px 20px; color: #888; font-weight: 600; text-transform: uppercase; font-size: 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border); color: #ddd; vertical-align: middle; }
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+        
+        img.thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #333; }
+        a.link-btn { color: var(--primary); text-decoration: none; font-weight: 600; padding: 6px 12px; border: 1px solid var(--primary); border-radius: 4px; font-size: 12px; }
+        a.link-btn:hover { background: var(--primary); color: #000; }
+
+        .empty-state { padding: 50px; text-align: center; color: #555; display: block; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header-box">
-        <h1>TikTok Boomerang V23 🪃</h1>
-        <p>Phiên bản sửa lỗi Local File & Tăng cường khả năng quét</p>
+    <header>
+        <h1>TIKTOK ANALYTICS V25</h1>
+    </header>
 
-        <div class="setup-area">
-            <strong>⚙️ BƯỚC 1:</strong> Kéo nút này thả lên thanh dấu trang (Bookmarks Bar).<br>
-            <em style="font-size: 12px; color: #777;">(Nếu đã có nút cũ, hãy xóa đi và kéo nút mới này lên)</em><br>
+    <div class="container">
+        
+        <div class="setup-box">
+            <div style="font-weight: 600; margin-bottom: 10px; color: var(--primary);">BƯỚC 1: CÀI ĐẶT NÚT KẾT NỐI (Chỉ làm 1 lần)</div>
+            <div style="font-size: 14px; color: #aaa;">Kéo nút đen bên dưới thả lên thanh dấu trang (Bookmarks Bar) của bạn.</div>
             
             <a class="bookmark-btn" href="javascript:(function(){
-                /* --- BOOMERANG V23 SCRIPT --- */
+                /* --- V25 BOOMERANG SENDER --- */
                 try {
-                    /* KIỂM TRA MÔI TRƯỜNG */
-                    if(!window.location.href.includes('tiktok.com')) {
-                        alert('❌ Lỗi: Bạn phải bấm nút này KHI ĐANG Ở TRANG TIKTOK!');
+                    /* Kiểm tra xem có phải trang con không */
+                    if (!window.opener) {
+                        alert('⚠️ LỖI QUY TRÌNH!\nBạn phải bấm nút \'MỞ KÊNH\' từ trang Dashboard trước.\nKhông được mở tab TikTok thủ công.');
                         return;
                     }
 
-                    /* TÌM DỮ LIỆU (THUẬT TOÁN MỚI) */
+                    /* 1. Lấy dữ liệu */
                     var data = [];
                     
-                    // Cách 1: Tìm trong __UNIVERSAL_DATA...
+                    // Thử tìm trong __UNIVERSAL_DATA (Cách mới)
                     var s1 = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
                     if(s1) {
                         try {
                             var j = JSON.parse(s1.textContent);
                             var scope = j.__DEFAULT_SCOPE__;
-                            if(scope) {
-                                // Quét tất cả các keys để tìm itemList
-                                for(var key in scope) {
-                                    if(scope[key].itemList) {
-                                        data = scope[key].itemList;
-                                        break;
-                                    }
-                                }
+                            for(var key in scope) {
+                                if(scope[key].itemList) { data = scope[key].itemList; break; }
                             }
                         } catch(e){}
                     }
                     
-                    // Cách 2: Tìm trong SIGI_STATE (Backup)
+                    // Thử tìm trong SIGI_STATE (Cách cũ)
                     if(!data.length) {
                         var s2 = document.getElementById('SIGI_STATE');
                         if(s2) {
@@ -101,151 +114,175 @@
                     }
 
                     if(!data.length) {
-                        alert('⚠️ Không tìm thấy video! Hãy cuộn chuột xuống dưới để load video rồi bấm lại.');
+                        alert('❌ Không tìm thấy video trên màn hình.\nHãy cuộn chuột xuống để load video rồi bấm lại!');
                         return;
                     }
 
-                    /* CHUẨN HÓA DỮ LIỆU */
+                    /* 2. Chuẩn hóa */
                     var cleanData = data.map(v => ({
                         id: v.id,
                         desc: (v.desc||'').replace(/\n/g,' '),
                         cover: v.video.cover,
                         stats: v.stats,
-                        author: v.author
+                        author: v.author.uniqueId || v.author,
+                        createTime: v.createTime
                     }));
+
+                    /* 3. Gửi về Dashboard */
+                    window.opener.postMessage({ type: 'TIKTOK_DATA_V25', payload: cleanData }, '*');
                     
-                    var jsonStr = JSON.stringify(cleanData);
+                    /* 4. Phản hồi */
+                    var noti = document.createElement('div');
+                    noti.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#00c853;color:#fff;padding:15px 30px;border-radius:30px;font-weight:bold;z-index:9999999;box-shadow:0 10px 30px rgba(0,200,83,0.4);animation:slideDown 0.5s;';
+                    noti.innerHTML = '✅ Đã gửi ' + data.length + ' video về Dashboard!';
+                    document.body.appendChild(noti);
+                    setTimeout(()=>noti.remove(), 3000);
 
-                    /* GỬI DỮ LIỆU ĐI */
-                    if(window.opener) {
-                        // Thử gửi về trang mẹ
-                        window.opener.postMessage({ type: 'TIKTOK_DATA', data: cleanData }, '*');
-                        alert('✅ Đã tìm thấy ' + data.length + ' video!\nđang gửi về Tool...');
-                    } else {
-                        // Nếu không có trang mẹ (do chạy Local hoặc mở tab tay)
-                        // Tự động copy vào clipboard
-                        var dummy = document.createElement('textarea');
-                        document.body.appendChild(dummy);
-                        dummy.value = jsonStr;
-                        dummy.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(dummy);
-                        alert('✅ Đã tìm thấy ' + data.length + ' video!\n⚠️ Do bạn chạy Offline, Tool không tự nhận được.\n\n👉 DỮ LIỆU ĐÃ ĐƯỢC COPY! Hãy quay lại Tool và bấm nút "DÁN DỮ LIỆU".');
-                    }
-
-                } catch(e) { alert('Lỗi Script: ' + e.message); }
-            })();" title="Kéo nút này lên thanh Bookmark">🚀 GỬI DATA VỀ TOOL (V23)</a>
+                } catch(e) { alert('Lỗi: ' + e.message); }
+            })();" title="Kéo tôi lên thanh Bookmark">📡 GỬI DATA VỀ DASHBOARD</a>
         </div>
+
+        <div class="control-bar">
+            <input type="text" id="targetId" placeholder="Nhập ID TikTok (Ví dụ: letuankhang2002)" value="letuankhang2002">
+            <button id="connectBtn">🚀 BƯỚC 2: MỞ KÊNH</button>
+            <button id="dlBtn">💾 TẢI EXCEL</button>
+        </div>
+
+        <div id="status">
+            <span class="dot" id="statusDot"></span>
+            <span id="statusText">Trạng thái: Đang chờ nhập ID...</span>
+        </div>
+
+        <div class="stats-grid" id="statsBox">
+            <div class="stat-card views"><h3>Tổng View</h3><div id="totalViews">0</div></div>
+            <div class="stat-card likes"><h3>Tổng Tim</h3><div id="totalLikes">0</div></div>
+            <div class="stat-card"><h3>Tổng Comment</h3><div id="totalCmts">0</div></div>
+            <div class="stat-card"><h3>Tổng Share</h3><div id="totalShares">0</div></div>
+        </div>
+
+        <div class="table-container" id="tableBox">
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Ảnh</th>
+                            <th>Mô tả</th>
+                            <th>View</th>
+                            <th>Tim</th>
+                            <th>Cmt</th>
+                            <th>Share</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <div class="empty-state" id="emptyState">Chưa có dữ liệu. Hãy kết nối và gửi data về.</div>
+        </div>
+
     </div>
 
-    <div class="control-panel">
-        <input id="u" type="text" placeholder="Nhập ID TikTok (Ví dụ: letuankhang2002)" value="letuankhang2002">
-        <button id="openBtn">📂 1. MỞ KÊNH</button>
-        <button id="pasteBtn" title="Dùng khi chạy Offline">📋 DÁN DỮ LIỆU</button>
-        <button id="dlBtn" disabled>💾 2. TẢI EXCEL</button>
-    </div>
+    <script>
+        let currentData = [];
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const dlBtn = document.getElementById('dlBtn');
 
-    <div id="status">👋 Sẵn sàng. Nhập ID và bấm Mở Kênh.</div>
+        // --- 1. MỞ KÊNH TIKTOK ---
+        document.getElementById('connectBtn').addEventListener('click', () => {
+            const id = document.getElementById('targetId').value.trim();
+            if(!id) return alert('Vui lòng nhập ID!');
 
-    <div class="table-box">
-        <div id="out"></div>
-    </div>
-</div>
-
-<script>
-    let currentData = [];
-    const statusEl = document.getElementById('status');
-    const uInput = document.getElementById('u');
-    const pasteBtn = document.getElementById('pasteBtn');
-
-    // HIỆN NÚT DÁN NẾU CHẠY OFFLINE
-    if (window.location.protocol === 'file:') {
-        pasteBtn.style.display = 'block';
-        statusEl.innerHTML = "⚠️ Bạn đang chạy file Offline. Hãy dùng nút 'DÁN DỮ LIỆU' nếu Tool không tự nhận.";
-        statusEl.style.color = "#ff9800";
-    }
-
-    // 1. MỞ TRANG TIKTOK
-    document.getElementById('openBtn').addEventListener('click', () => {
-        const u = uInput.value.trim();
-        if(!u) return alert("Nhập ID!");
-        
-        statusEl.innerHTML = "⏳ Đang đợi... (Sang tab TikTok -> Bấm Bookmarklet -> Xem thông báo)";
-        statusEl.className = "pulse";
-        
-        window.open(`https://www.tiktok.com/@${u}`, '_blank');
-    });
-
-    // 2. NHẬN DỮ LIỆU TỰ ĐỘNG (ONLINE)
-    window.addEventListener('message', (event) => {
-        if (event.data && event.data.type === 'TIKTOK_DATA') {
-            handleData(event.data.data);
-        }
-    });
-
-    // 3. NHẬN DỮ LIỆU THỦ CÔNG (OFFLINE - NÚT DÁN)
-    pasteBtn.addEventListener('click', async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (!text.startsWith('[')) return alert("Clipboard không chứa dữ liệu JSON hợp lệ!");
+            // Update UI
+            statusText.innerText = "Đang lắng nghe dữ liệu từ tab TikTok... (Hãy sang tab đó và bấm Bookmarklet)";
+            statusDot.className = "dot listening";
             
-            const data = JSON.parse(text);
-            handleData(data);
-            alert("Đã dán thành công!");
-        } catch (e) {
-            // Fallback cho trình duyệt cũ
-            const raw = prompt("Dán dữ liệu JSON vào đây:");
-            if(raw) {
-                try { handleData(JSON.parse(raw)); } catch(err) { alert("Dữ liệu lỗi!"); }
-            }
-        }
-    });
+            // Reset Data cũ
+            currentData = [];
+            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('statsBox').style.display = 'none';
+            document.getElementById('tableBox').style.display = 'none';
+            dlBtn.classList.remove('active');
 
-    function handleData(videos) {
-        currentData = videos;
-        renderTable(videos);
-        statusEl.innerHTML = `✅ Đã nhận thành công ${videos.length} video!`;
-        statusEl.className = "";
-        statusEl.style.color = "#00f2ea";
-        document.getElementById('dlBtn').disabled = false;
-    }
-
-    function renderTable(list) {
-        let h = '<table><thead><tr><th>#</th><th>Thumb</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr></thead><tbody>';
-        list.forEach((v,i) => {
-            const author = v.author.uniqueId || v.author;
-            h += `<tr>
-                <td>${i+1}</td>
-                <td><img src="${v.cover}"></td>
-                <td>${(v.desc||'-').substring(0,60)}</td>
-                <td style="color:#00f2ea;font-weight:bold">${v.stats.playCount.toLocaleString()}</td>
-                <td>${v.stats.diggCount.toLocaleString()}</td>
-                <td>${v.stats.commentCount.toLocaleString()}</td>
-                <td>${v.stats.shareCount.toLocaleString()}</td>
-                <td><a href="https://www.tiktok.com/@${author}/video/${v.id}" target="_blank">Xem</a></td>
-            </tr>`;
+            // Mở Tab Mới
+            window.open(`https://www.tiktok.com/@${id}`, '_blank');
         });
-        h += '</tbody></table>';
-        document.getElementById('out').innerHTML = h;
-    }
 
-    // 4. TẢI EXCEL
-    document.getElementById('dlBtn').addEventListener('click', () => {
-        if(!currentData.length) return;
-        const u = uInput.value;
-        const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,Share,LinkVideo\n" + 
-            currentData.map((v,i) => {
-                const author = v.author.uniqueId || v.author;
-                return `${i+1},${v.cover},"${(v.desc||'').replace(/"/g,'""')}",${v.stats.playCount},${v.stats.diggCount},${v.stats.commentCount},${v.stats.shareCount},https://www.tiktok.com/@${author}/video/${v.id}`;
-            }).join('\n');
+        // --- 2. LẮNG NGHE DỮ LIỆU (POSTMESSAGE) ---
+        window.addEventListener('message', (event) => {
+            // Xác thực gói tin
+            if (event.data && event.data.type === 'TIKTOK_DATA_V25') {
+                const videos = event.data.payload;
+                handleDataSuccess(videos);
+            }
+        });
+
+        function handleDataSuccess(videos) {
+            currentData = videos;
+
+            // 1. Update UI Status
+            statusText.innerText = `✅ Đã nhận thành công ${videos.length} video!`;
+            statusDot.className = "dot success";
             
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `TikTok_${u}_${Date.now()}.csv`;
-        link.click();
-    });
-</script>
+            // 2. Hiển thị Box
+            document.getElementById('statsBox').style.display = 'grid';
+            document.getElementById('tableBox').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+            dlBtn.classList.add('active');
+
+            // 3. Tính toán Stats
+            let t = { v:0, l:0, c:0, s:0 };
+            videos.forEach(v => {
+                t.v += v.stats.playCount;
+                t.l += v.stats.diggCount;
+                t.c += v.stats.commentCount;
+                t.s += v.stats.shareCount;
+            });
+            document.getElementById('totalViews').innerText = t.v.toLocaleString('vi-VN');
+            document.getElementById('totalLikes').innerText = t.l.toLocaleString('vi-VN');
+            document.getElementById('totalCmts').innerText = t.c.toLocaleString('vi-VN');
+            document.getElementById('totalShares').innerText = t.s.toLocaleString('vi-VN');
+
+            // 4. Render Table
+            let html = '';
+            videos.forEach((v, index) => {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td><img src="${v.cover}" class="thumb"></td>
+                        <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.desc || 'No caption'}</td>
+                        <td style="color:var(--primary); font-weight:bold;">${v.stats.playCount.toLocaleString()}</td>
+                        <td>${v.stats.diggCount.toLocaleString()}</td>
+                        <td>${v.stats.commentCount.toLocaleString()}</td>
+                        <td>${v.stats.shareCount.toLocaleString()}</td>
+                        <td><a href="https://www.tiktok.com/@${v.author}/video/${v.id}" target="_blank" class="link-btn">XEM</a></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('tableBody').innerHTML = html;
+        }
+
+        // --- 3. TẢI EXCEL ---
+        dlBtn.addEventListener('click', () => {
+            if(!currentData.length) return;
+            const id = document.getElementById('targetId').value;
+            
+            const csvContent = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Cmt,Share,LinkVideo\n" + 
+                currentData.map((v, i) => {
+                    const cleanDesc = (v.desc || '').replace(/"/g, '""');
+                    return `${i+1},${v.cover},"${cleanDesc}",${v.stats.playCount},${v.stats.diggCount},${v.stats.commentCount},${v.stats.shareCount},https://www.tiktok.com/@${v.author}/video/${v.id}`;
+                }).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `TikTok_Dashboard_${id}_${Date.now()}.csv`;
+            a.click();
+        });
+
+    </script>
 
 </body>
 </html>
