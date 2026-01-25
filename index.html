@@ -3,42 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Data Boomerang V22</title>
+    <title>TikTok Boomerang V23 (Fix Local)</title>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #00f2ea; --secondary: #ff0050; --bg: #111; --card: #222; --text: #fff; }
         body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
         
-        .container { width: 100%; max-width: 1000px; }
+        .container { width: 100%; max-width: 900px; }
         
-        /* HEADER & CONFIG */
-        .header-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* HEADER */
+        .header-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; margin-bottom: 20px; box-shadow: 0 0 20px rgba(0,242,234,0.1); }
         h1 { color: var(--secondary); margin: 0 0 10px 0; }
-        .setup-area { background: #1a1a1a; padding: 15px; border-radius: 10px; border: 2px dashed #444; margin: 20px 0; text-align: left; }
         
+        /* SETUP AREA */
+        .setup-area { background: #1a1a1a; padding: 20px; border-radius: 10px; border: 2px dashed #444; margin: 20px 0; text-align: center; }
         .bookmark-btn {
             display: inline-block; background: #000; color: var(--primary);
-            text-decoration: none; font-weight: 800; padding: 10px 20px;
+            text-decoration: none; font-weight: 800; padding: 12px 25px;
             border-radius: 50px; border: 2px solid var(--primary);
-            cursor: grab; margin-top: 10px; box-shadow: 0 0 10px rgba(0,242,234,0.2);
+            cursor: grab; margin-top: 15px; box-shadow: 0 5px 0 #00aaaa; transition: 0.2s;
         }
+        .bookmark-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #00aaaa; }
         
-        /* CONTROL PANEL */
-        .control-panel { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-weight: bold; outline: none; }
-        button { padding: 0 30px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; transition: 0.2s; }
+        /* CONTROLS */
+        .control-panel { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { flex: 2; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-weight: bold; outline: none; }
+        button { flex: 1; padding: 15px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; white-space: nowrap; }
         #openBtn { background: var(--primary); color: #000; }
-        #openBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,242,234,0.3); }
+        #pasteBtn { background: #333; color: #fff; border: 1px solid #555; display: none; } /* Nút ẩn, hiện khi lỗi */
         #dlBtn { background: var(--secondary); color: #fff; }
         button:disabled { background: #444; color: #777; cursor: not-allowed; }
 
-        /* STATUS & LOGS */
-        #status { text-align: center; margin-bottom: 20px; font-weight: bold; min-height: 24px; color: #aaa; }
+        /* STATUS */
+        #status { text-align: center; margin-bottom: 20px; font-weight: bold; min-height: 24px; color: #aaa; padding: 10px; border-radius: 5px; }
         .pulse { animation: pulse 1.5s infinite; color: var(--primary) !important; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         /* TABLE */
-        .table-box { overflow-x: auto; background: var(--card); border-radius: 15px; border: 1px solid #333; padding: 5px; }
+        .table-box { overflow-x: auto; background: var(--card); border-radius: 15px; border: 1px solid #333; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #333; color: var(--primary); padding: 15px; text-align: left; white-space: nowrap; }
         td { padding: 12px 15px; border-bottom: 1px solid #333; }
@@ -50,70 +52,100 @@
 
 <div class="container">
     <div class="header-box">
-        <h1>TikTok Boomerang V22 🪃</h1>
-        <p>Mở TikTok -> Bấm nút -> Dữ liệu tự bay về đây!</p>
+        <h1>TikTok Boomerang V23 🪃</h1>
+        <p>Phiên bản sửa lỗi Local File & Tăng cường khả năng quét</p>
 
         <div class="setup-area">
-            <strong>⚙️ CÀI ĐẶT (Làm 1 lần):</strong> Kéo nút bên dưới lên thanh dấu trang (Bookmarks Bar).
-            <div style="text-align: center;">
-                <a class="bookmark-btn" href="javascript:(function(){
-                    /* --- BOOMERANG SCRIPT --- */
-                    try {
-                        if(!window.opener) {
-                             alert('⚠️ LỖI: Bạn phải mở trang này TỪ trang Web Tool (Bấm nút MỞ KÊNH). Không được mở trực tiếp!');
-                             return;
-                        }
-                        
-                        /* LẤY DỮ LIỆU */
-                        var data = [];
-                        var script1 = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
-                        var script2 = document.getElementById('SIGI_STATE');
-                        
-                        if(script1) {
-                            var json = JSON.parse(script1.textContent);
-                            var userModule = json.__DEFAULT_SCOPE__['webapp.user-detail'];
-                            if(userModule && userModule.itemList) data = userModule.itemList;
-                        } 
-                        
-                        if(data.length === 0 && script2) {
-                            var json = JSON.parse(script2.textContent);
-                            if(json.ItemModule) data = Object.values(json.ItemModule);
-                        }
+            <strong>⚙️ BƯỚC 1:</strong> Kéo nút này thả lên thanh dấu trang (Bookmarks Bar).<br>
+            <em style="font-size: 12px; color: #777;">(Nếu đã có nút cũ, hãy xóa đi và kéo nút mới này lên)</em><br>
+            
+            <a class="bookmark-btn" href="javascript:(function(){
+                /* --- BOOMERANG V23 SCRIPT --- */
+                try {
+                    /* KIỂM TRA MÔI TRƯỜNG */
+                    if(!window.location.href.includes('tiktok.com')) {
+                        alert('❌ Lỗi: Bạn phải bấm nút này KHI ĐANG Ở TRANG TIKTOK!');
+                        return;
+                    }
 
-                        if(data.length === 0) {
-                            alert('❌ Chưa tìm thấy video. Hãy cuộn chuột xuống một chút rồi bấm lại!');
-                            return;
+                    /* TÌM DỮ LIỆU (THUẬT TOÁN MỚI) */
+                    var data = [];
+                    
+                    // Cách 1: Tìm trong __UNIVERSAL_DATA...
+                    var s1 = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
+                    if(s1) {
+                        try {
+                            var j = JSON.parse(s1.textContent);
+                            var scope = j.__DEFAULT_SCOPE__;
+                            if(scope) {
+                                // Quét tất cả các keys để tìm itemList
+                                for(var key in scope) {
+                                    if(scope[key].itemList) {
+                                        data = scope[key].itemList;
+                                        break;
+                                    }
+                                }
+                            }
+                        } catch(e){}
+                    }
+                    
+                    // Cách 2: Tìm trong SIGI_STATE (Backup)
+                    if(!data.length) {
+                        var s2 = document.getElementById('SIGI_STATE');
+                        if(s2) {
+                            try {
+                                var j2 = JSON.parse(s2.textContent);
+                                if(j2.ItemModule) data = Object.values(j2.ItemModule);
+                            } catch(e){}
                         }
+                    }
 
-                        /* CHUẨN HÓA DỮ LIỆU */
-                        var cleanData = data.map(v => ({
-                            id: v.id,
-                            desc: (v.desc||'').replace(/\n/g,' '),
-                            cover: v.video.cover,
-                            stats: v.stats,
-                            author: v.author
-                        }));
+                    if(!data.length) {
+                        alert('⚠️ Không tìm thấy video! Hãy cuộn chuột xuống dưới để load video rồi bấm lại.');
+                        return;
+                    }
 
-                        /* GỬI VỀ TRANG MẸ */
+                    /* CHUẨN HÓA DỮ LIỆU */
+                    var cleanData = data.map(v => ({
+                        id: v.id,
+                        desc: (v.desc||'').replace(/\n/g,' '),
+                        cover: v.video.cover,
+                        stats: v.stats,
+                        author: v.author
+                    }));
+                    
+                    var jsonStr = JSON.stringify(cleanData);
+
+                    /* GỬI DỮ LIỆU ĐI */
+                    if(window.opener) {
+                        // Thử gửi về trang mẹ
                         window.opener.postMessage({ type: 'TIKTOK_DATA', data: cleanData }, '*');
-                        
-                        /* THÔNG BÁO VÀ ĐÓNG */
-                        // alert('✅ Đã gửi ' + data.length + ' video về Tool!');
-                        // window.close(); // Tự đóng tab nếu muốn (Trình duyệt có thể chặn)
+                        alert('✅ Đã tìm thấy ' + data.length + ' video!\nđang gửi về Tool...');
+                    } else {
+                        // Nếu không có trang mẹ (do chạy Local hoặc mở tab tay)
+                        // Tự động copy vào clipboard
+                        var dummy = document.createElement('textarea');
+                        document.body.appendChild(dummy);
+                        dummy.value = jsonStr;
+                        dummy.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(dummy);
+                        alert('✅ Đã tìm thấy ' + data.length + ' video!\n⚠️ Do bạn chạy Offline, Tool không tự nhận được.\n\n👉 DỮ LIỆU ĐÃ ĐƯỢC COPY! Hãy quay lại Tool và bấm nút "DÁN DỮ LIỆU".');
+                    }
 
-                    } catch(e) { alert('Lỗi: ' + e.message); }
-                })();" title="Kéo lên thanh Bookmark">🚀 GỬI DATA VỀ TOOL</a>
-            </div>
+                } catch(e) { alert('Lỗi Script: ' + e.message); }
+            })();" title="Kéo nút này lên thanh Bookmark">🚀 GỬI DATA VỀ TOOL (V23)</a>
         </div>
     </div>
 
     <div class="control-panel">
         <input id="u" type="text" placeholder="Nhập ID TikTok (Ví dụ: letuankhang2002)" value="letuankhang2002">
         <button id="openBtn">📂 1. MỞ KÊNH</button>
+        <button id="pasteBtn" title="Dùng khi chạy Offline">📋 DÁN DỮ LIỆU</button>
         <button id="dlBtn" disabled>💾 2. TẢI EXCEL</button>
     </div>
 
-    <div id="status">Sẵn sàng. Hãy nhập ID và bấm Mở Kênh.</div>
+    <div id="status">👋 Sẵn sàng. Nhập ID và bấm Mở Kênh.</div>
 
     <div class="table-box">
         <div id="out"></div>
@@ -124,42 +156,64 @@
     let currentData = [];
     const statusEl = document.getElementById('status');
     const uInput = document.getElementById('u');
+    const pasteBtn = document.getElementById('pasteBtn');
+
+    // HIỆN NÚT DÁN NẾU CHẠY OFFLINE
+    if (window.location.protocol === 'file:') {
+        pasteBtn.style.display = 'block';
+        statusEl.innerHTML = "⚠️ Bạn đang chạy file Offline. Hãy dùng nút 'DÁN DỮ LIỆU' nếu Tool không tự nhận.";
+        statusEl.style.color = "#ff9800";
+    }
 
     // 1. MỞ TRANG TIKTOK
     document.getElementById('openBtn').addEventListener('click', () => {
         const u = uInput.value.trim();
         if(!u) return alert("Nhập ID!");
         
-        statusEl.innerHTML = "⏳ Đang đợi dữ liệu từ tab TikTok... (Hãy sang tab đó và bấm Bookmarklet)";
+        statusEl.innerHTML = "⏳ Đang đợi... (Sang tab TikTok -> Bấm Bookmarklet -> Xem thông báo)";
         statusEl.className = "pulse";
         
-        // Mở tab mới
         window.open(`https://www.tiktok.com/@${u}`, '_blank');
     });
 
-    // 2. LẮNG NGHE DỮ LIỆU TRẢ VỀ (BOOMERANG)
+    // 2. NHẬN DỮ LIỆU TỰ ĐỘNG (ONLINE)
     window.addEventListener('message', (event) => {
-        // Kiểm tra xem có phải data từ TikTok không
         if (event.data && event.data.type === 'TIKTOK_DATA') {
-            const videos = event.data.data;
-            
-            // Xử lý dữ liệu
-            currentData = videos;
-            renderTable(videos);
-            
-            statusEl.innerHTML = `✅ Đã nhận thành công ${videos.length} video!`;
-            statusEl.className = "";
-            document.getElementById('dlBtn').disabled = false;
-            
-            // Có thể play âm thanh thông báo nếu muốn
-            // new Audio('ding.mp3').play();
+            handleData(event.data.data);
         }
     });
+
+    // 3. NHẬN DỮ LIỆU THỦ CÔNG (OFFLINE - NÚT DÁN)
+    pasteBtn.addEventListener('click', async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (!text.startsWith('[')) return alert("Clipboard không chứa dữ liệu JSON hợp lệ!");
+            
+            const data = JSON.parse(text);
+            handleData(data);
+            alert("Đã dán thành công!");
+        } catch (e) {
+            // Fallback cho trình duyệt cũ
+            const raw = prompt("Dán dữ liệu JSON vào đây:");
+            if(raw) {
+                try { handleData(JSON.parse(raw)); } catch(err) { alert("Dữ liệu lỗi!"); }
+            }
+        }
+    });
+
+    function handleData(videos) {
+        currentData = videos;
+        renderTable(videos);
+        statusEl.innerHTML = `✅ Đã nhận thành công ${videos.length} video!`;
+        statusEl.className = "";
+        statusEl.style.color = "#00f2ea";
+        document.getElementById('dlBtn').disabled = false;
+    }
 
     function renderTable(list) {
         let h = '<table><thead><tr><th>#</th><th>Thumb</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr></thead><tbody>';
         list.forEach((v,i) => {
-            const author = typeof v.author === 'string' ? v.author : v.author.uniqueId;
+            const author = v.author.uniqueId || v.author;
             h += `<tr>
                 <td>${i+1}</td>
                 <td><img src="${v.cover}"></td>
@@ -175,13 +229,13 @@
         document.getElementById('out').innerHTML = h;
     }
 
-    // 3. TẢI EXCEL
+    // 4. TẢI EXCEL
     document.getElementById('dlBtn').addEventListener('click', () => {
         if(!currentData.length) return;
         const u = uInput.value;
         const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,Share,LinkVideo\n" + 
             currentData.map((v,i) => {
-                const author = typeof v.author === 'string' ? v.author : v.author.uniqueId;
+                const author = v.author.uniqueId || v.author;
                 return `${i+1},${v.cover},"${(v.desc||'').replace(/"/g,'""')}",${v.stats.playCount},${v.stats.diggCount},${v.stats.commentCount},${v.stats.shareCount},https://www.tiktok.com/@${author}/video/${v.id}`;
             }).join('\n');
             
