@@ -3,26 +3,36 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Video Scanner V11 (Super Fast)</title>
+  <title>TikTok Scanner V16 (HTML Parser)</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* CSS GIAO DIỆN CARTOON */
-    :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; --thick:3px; }
+    /* CSS Giao diện Cartoon */
+    :root { --primary:#ff0050; --secondary:#00f2ea; --bg:#f4f5f7; --b:#000; }
     body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); padding:20px; display:flex; flex-direction:column; align-items:center; }
-    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; position: relative;}
-    h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-shadow:2px 2px 0 #000; margin-bottom:30px; text-align:center; font-size: 32px;}
-    .box { display:grid; grid-template-columns:1.5fr 0.5fr auto auto; gap:15px; margin-bottom:30px; }
-    input { padding:12px; border:2px solid var(--b); border-radius:10px; font-weight:600; font-family:inherit; }
+    main { width:100%; max-width:1000px; background:#fff; border:3px solid var(--b); box-shadow:6px 6px 0 var(--b); border-radius:20px; padding:30px; }
+    h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-shadow:2px 2px 0 #000; margin-bottom:10px; text-align:center; font-size: 32px; -webkit-text-stroke: 1px black;}
+    
+    .box { display:grid; grid-template-columns:1.5fr 0.5fr auto auto; gap:15px; margin-bottom:20px; }
+    input { padding:12px; border:2px solid var(--b); border-radius:10px; font-weight:600; font-family:inherit; outline: none;}
     button { padding:0 25px; font-weight:700; background:var(--primary); color:#fff; border:2px solid var(--b); border-radius:10px; cursor:pointer; box-shadow:3px 3px 0 var(--b); transition:0.1s; text-transform: uppercase;}
     button:active { transform:translate(2px,2px); box-shadow:0 0 0 #000; }
     button:disabled { background:#ccc; color:#666; box-shadow:none; cursor:not-allowed; transform:none; }
     #dl { background:var(--secondary); color:#000; }
+    
     #log { margin-bottom:20px; padding:15px; border:2px solid var(--b); border-radius:10px; font-weight:600; text-align:center; display: none; }
+    
+    /* Stats Board */
+    #stats { display:none; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom: 20px;}
+    .card { background:#fff; border:2px solid #000; padding:10px; text-align:center; border-radius:10px; box-shadow:3px 3px 0 #000;}
+    .card h4 { margin:0; font-size:12px; color:#555; text-transform:uppercase;}
+    .card div { font-size:18px; font-weight:800; color: var(--primary); }
+
     table { width:100%; border-collapse:collapse; margin-top:20px; font-size: 14px;}
-    th,td { border:2px solid var(--b); padding:10px; text-align:left; }
-    th { background:var(--secondary); white-space: nowrap; }
+    th,td { border:2px solid var(--b); padding:10px; text-align:left; vertical-align: middle;}
+    th { background:var(--secondary); white-space:nowrap; }
     img { width:50px; height:50px; object-fit:cover; border:2px solid var(--b); border-radius:8px; display:block; }
-    @media(max-width:768px){ .box{ grid-template-columns:1fr; } }
+    
+    @media(max-width:768px){ .box{ grid-template-columns:1fr; } #stats{ grid-template-columns:repeat(2, 1fr); } }
   </style>
 </head>
 <body>
@@ -31,53 +41,50 @@
   </nav>
 
   <main>
-    <h1>TikTok Scanner V11 (Fix Timeout)</h1>
+    <h1>TikTok Scanner V16</h1>
+    <p style="text-align:center; color:#666; font-size:13px; margin-bottom:20px">🔥 Chế độ HTML Parser: Lấy đầy đủ View/Tim từ ProxiTok</p>
+    
     <div class="box">
       <input id="u" placeholder="Nhập ID (vd: letuankhang2002)" value="letuankhang2002" />
-      <input id="n" type="number" value="10" min="1" max="50" placeholder="Số lượng" />
-      <button id="fetchBtn">🚀 Quét Nhanh</button>
+      <input id="n" type="number" value="10" min="1" max="20" placeholder="Max 20" title="ProxiTok trang 1 chỉ có khoảng 20 video" />
+      <button id="fetchBtn">🚀 Quét Data</button>
       <button id="dl" disabled>💾 Excel</button>
     </div>
 
     <div id="log"></div>
+    <div id="stats"></div>
     <div id="out" style="overflow-x:auto;"></div>
   </main>
 
   <script>
-    // 👇👇👇 DÁN LINK GOOGLE SCRIPT CỦA BẠN VÀO DƯỚI 👇👇👇
-    // Link phải có đuôi /exec
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLDeH8yZmVN7uohD5zcii-OCh3iOKOzW7BW0UZhJJ0m3H1EhyackfL1rdQ-i8VtAQk/exec"; 
+    // 👇👇👇 DÁN LINK GOOGLE SCRIPT MỚI CỦA BẠN VÀO ĐÂY (ĐUÔI /exec) 👇👇👇
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1FE5vpwfWMvk9vMJEk6KLHGBludGbOy5TGb1v04PMl8Brx0jCNLu1BBTxU_SS3KkF/exec"; 
     // 👆👆👆
 
     let data = [];
     const log = (m, c='#fff') => { const e=document.getElementById('log'); e.textContent=m; e.style.background=c; e.style.display='block'; }
 
-    // Hàm gọi API thông qua Proxy mạnh
-    async function fetchData(username) {
-        // Thêm tham số ngẫu nhiên để tránh cache
-        const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&_t=${Date.now()}`;
-        
-        // Sử dụng corsproxy.io để gọi Google Script
+    async function fetchData(username, count) {
+        // Gọi Google Script qua CorsProxy để tránh lỗi CORS trên trình duyệt
+        const gasUrl = `${GOOGLE_SCRIPT_URL}?unique_id=${username}&count=${count}&_t=${Date.now()}`;
         const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(gasUrl);
         
         try {
             const res = await fetch(proxyUrl);
             const text = await res.text();
-
-            // Kiểm tra xem có phải HTML lỗi không
-            if (text.trim().startsWith("<")) {
-                throw new Error("Server Google đang quá tải (Timeout). Hãy thử lại sau 1 phút.");
-            }
-
+            
+            // Xử lý lỗi nếu Proxy trả về HTML thay vì JSON
+            if (text.trim().startsWith("<")) throw new Error("Server Google Timeout. Hãy thử lại!");
+            
             return JSON.parse(text);
         } catch (e) {
-            throw new Error(e.message.includes("JSON") ? "Lỗi kết nối Server" : e.message);
+            throw new Error("Lỗi kết nối. Vui lòng thử lại!");
         }
     }
 
     document.getElementById('fetchBtn').addEventListener('click', async () => {
       const u = document.getElementById('u').value.trim();
-      const n = document.getElementById('n').value;
+      const n = parseInt(document.getElementById('n').value);
       
       if(!u) return alert('Nhập ID!');
       
@@ -85,20 +92,22 @@
       btn.disabled = true;
       document.getElementById('dl').disabled = true;
       document.getElementById('out').innerHTML = '';
+      document.getElementById('stats').style.display = 'none';
       data = [];
-      log('⏳ Đang kết nối Server vệ tinh (Tối đa 15s)...', '#e3f2fd');
+      log('⏳ Đang phân tích mã nguồn HTML (Mất khoảng 5-8s)...', '#e3f2fd');
 
       try {
-        const json = await fetchData(u);
+        const json = await fetchData(u, n);
 
-        if (json.code !== 0 || !json.data || !json.data.videos.length) {
-            throw new Error(json.msg || "Không tìm thấy video nào.");
-        }
+        if(json.code === -1) throw new Error(json.msg);
+        if(!json.data || !json.data.videos.length) throw new Error("Không tìm thấy video nào.");
 
         const videos = json.data.videos.slice(0, n);
         data = videos;
+        
+        renderStats(videos);
         render(videos);
-        log(`✅ Thành công! Tìm thấy ${videos.length} video.`, '#e8f5e9');
+        log(`✅ Thành công! Dữ liệu từ: ${new URL(json.source).hostname}`, '#e8f5e9');
         document.getElementById('dl').disabled = false;
 
       } catch(e) {
@@ -108,16 +117,32 @@
       }
     });
 
+    function renderStats(list) {
+        let t={v:0,l:0,c:0,s:0};
+        list.forEach(v=>{ t.v+=v.play_count; t.l+=v.digg_count; t.c+=v.comment_count; t.s+=v.share_count; });
+        const f=n=>n.toLocaleString('vi-VN');
+        const h = `
+            <div class="card"><h4>Tổng View</h4><div>${f(t.v)}</div></div>
+            <div class="card"><h4>Tổng Tim</h4><div>${f(t.l)}</div></div>
+            <div class="card"><h4>Tổng Cmt</h4><div>${f(t.c)}</div></div>
+            <div class="card"><h4>Tổng Share</h4><div>${f(t.s)}</div></div>
+        `;
+        const el = document.getElementById('stats');
+        el.innerHTML = h;
+        el.style.display = 'grid';
+    }
+
     function render(list) {
-      let h = '<table><tr><th>STT</th><th>Ảnh</th><th>Caption</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr>';
+      let h = '<table><tr><th>STT</th><th>Ảnh</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr>';
       list.forEach((v,i) => {
         h += `<tr>
           <td>${i+1}</td>
           <td><img src="${v.cover}"></td>
-          <td>${(v.title||'-').substring(0,60)}</td>
-          <td>${v.digg_count ? v.digg_count.toLocaleString() : '-'}</td>
-          <td>${v.comment_count ? v.comment_count.toLocaleString() : '-'}</td>
-          <td>${v.share_count ? v.share_count.toLocaleString() : '-'}</td>
+          <td>${(v.title||'-').substring(0,50)}</td>
+          <td>${v.play_count.toLocaleString()}</td>
+          <td>${v.digg_count.toLocaleString()}</td>
+          <td>${v.comment_count.toLocaleString()}</td>
+          <td>${v.share_count.toLocaleString()}</td>
           <td><a href="https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}" target="_blank">Xem</a></td>
         </tr>`;
       });
@@ -127,8 +152,8 @@
     document.getElementById('dl').addEventListener('click', () => {
       if(!data.length) return;
       const u = document.getElementById('u').value;
-      const csv = "\uFEFFSTT,LinkAnh,Caption,Like,Comment,Share,LinkVideo\n" + 
-        data.map((v,i) => `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.digg_count},${v.comment_count},${v.share_count},https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`).join('\n');
+      const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,Share,LinkVideo\n" + 
+        data.map((v,i) => `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.play_count},${v.digg_count},${v.comment_count},${v.share_count},https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`).join('\n');
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
       a.download = `TikTok_${u}.csv`;
