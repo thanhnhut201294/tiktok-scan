@@ -3,203 +3,125 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Scanner V19 (No-Backend)</title>
+  <title>TikTok Scanner V20 (CodeTabs Tunnel)</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    /* CSS Giao diện Neon Modern */
-    :root { --primary: #00f2ea; --secondary: #ff0050; --bg: #121212; --card: #1e1e1e; --text: #fff; }
-    body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); padding:20px; display:flex; flex-direction:column; align-items:center; min-height: 100vh; }
+    /* GIAO DIỆN TỐI ƯU HÓA */
+    :root { --p:#ff0050; --s:#00f2ea; --bg:#111; --card:#222; --text:#fff; }
+    body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); padding:20px; display:flex; flex-direction:column; align-items:center; min-height:100vh; }
     
-    main { width:100%; max-width:1100px; background:var(--card); border:1px solid #333; box-shadow:0 10px 30px rgba(0,0,0,0.5); border-radius:20px; padding:30px; position: relative; }
+    main { width:100%; max-width:1100px; background:var(--card); border:1px solid #333; box-shadow:0 0 20px rgba(0,242,234,0.1); border-radius:20px; padding:30px; }
     
-    h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-align:center; font-size: 36px; margin-bottom: 10px; letter-spacing: 1px;}
-    .tagline { text-align: center; color: #888; font-size: 14px; margin-bottom: 30px; }
-    
-    .control-box { 
-        display:grid; grid-template-columns: 2fr 1fr auto auto; gap:15px; 
-        background: #2a2a2a; padding: 20px; border-radius: 15px; border: 1px solid #444;
-    }
-    
-    input { 
-        padding:15px; background: #333; border:1px solid #555; border-radius:10px; 
-        color: #fff; font-weight:600; font-family:inherit; outline: none; font-size: 15px;
-    }
-    input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 242, 234, 0.2); }
-    
-    button { 
-        padding:0 30px; font-weight:700; border-radius:10px; cursor:pointer; 
-        transition:0.2s; text-transform: uppercase; border: none; font-size: 14px;
-    }
-    
-    #fetchBtn { background: var(--primary); color: #000; box-shadow: 0 4px 0 #00aaa0; }
-    #fetchBtn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 #00aaa0; }
-    #fetchBtn:active { transform: translateY(2px); box-shadow: 0 0 0; }
-    
-    #dl { background: var(--secondary); color: #fff; box-shadow: 0 4px 0 #b30038; }
-    #dl:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 #b30038; }
-    
-    button:disabled { background: #444; color: #777; box-shadow: none; cursor: not-allowed; transform: none; }
+    h1 { font-family:'Fredoka',sans-serif; color:var(--p); text-align:center; font-size: 32px; margin-bottom: 5px; }
+    p.sub { text-align: center; color: #777; font-size: 13px; margin-bottom: 30px; }
 
-    /* LOGS */
-    #log { margin: 20px 0; padding:15px; border-radius:10px; font-weight:600; text-align:center; font-size: 14px; display: none; }
-    .log-info { background: #2196f3; color: white; }
-    .log-success { background: #00e676; color: black; }
-    .log-error { background: #ff1744; color: white; }
+    .control-box { display:grid; grid-template-columns: 2fr 1fr auto auto; gap:10px; background:#333; padding:15px; border-radius:12px; }
+    
+    input { background:#222; border:1px solid #555; color:#fff; padding:12px; border-radius:8px; font-weight:bold; outline:none; }
+    input:focus { border-color:var(--s); }
+    
+    button { padding:0 25px; border-radius:8px; font-weight:700; cursor:pointer; border:none; transition:0.2s; }
+    #fetchBtn { background:var(--s); color:#000; }
+    #fetchBtn:hover { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,242,234,0.3); }
+    #dl { background:var(--p); color:#fff; }
+    button:disabled { background:#555; color:#888; cursor:not-allowed; transform:none; box-shadow:none; }
 
-    /* STATS */
-    #stats { display:none; grid-template-columns:repeat(4, 1fr); gap:15px; margin-bottom: 30px;}
-    .stat-card { background:#2a2a2a; padding:15px; text-align:center; border-radius:12px; border: 1px solid #333; }
-    .stat-card h4 { margin:0 0 5px 0; font-size:12px; color:#aaa; text-transform:uppercase; letter-spacing: 1px; }
-    .stat-card div { font-size:22px; font-weight:800; color: var(--primary); }
+    /* LOG & STATS */
+    #log { margin:20px 0; padding:10px; text-align:center; border-radius:8px; font-size:14px; display:none; }
+    .success { background:#00c853; color:#000; } .error { background:#d50000; color:#fff; } .info { background:#2962ff; color:#fff; }
+
+    #stats { display:none; grid-template-columns:repeat(4,1fr); gap:15px; margin-bottom:20px; }
+    .stat-card { background:#333; padding:15px; text-align:center; border-radius:10px; border:1px solid #444; }
+    .stat-card h4 { margin:0 0 5px 0; font-size:11px; color:#aaa; text-transform:uppercase; }
+    .stat-card div { font-size:20px; font-weight:800; color:var(--s); }
 
     /* TABLE */
-    .table-wrapper { overflow-x:auto; border-radius: 10px; border: 1px solid #333; }
-    table { width:100%; border-collapse:collapse; font-size: 14px; }
-    th { background:#333; color: var(--primary); padding: 15px; text-align: left; white-space: nowrap; text-transform: uppercase; font-size: 12px; }
-    td { padding: 12px 15px; border-bottom: 1px solid #333; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover { background: #252525; }
-    
-    img { width:50px; height:50px; object-fit:cover; border-radius:8px; border: 1px solid #444; display: block;}
-    a { color: var(--secondary); text-decoration: none; font-weight: 600; }
-    a:hover { text-decoration: underline; }
+    .tbl-box { overflow-x:auto; border:1px solid #444; border-radius:10px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th { background:#444; color:var(--s); padding:12px; text-align:left; white-space:nowrap; }
+    td { padding:10px; border-bottom:1px solid #333; }
+    img { width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #555; }
+    a { color:var(--p); text-decoration:none; }
 
-    @media(max-width:768px){ 
-        .control-box{ grid-template-columns:1fr; } 
-        #stats{ grid-template-columns:repeat(2, 1fr); } 
-    }
+    @media(max-width:768px){ .control-box{ grid-template-columns:1fr; } #stats{ grid-template-columns:1fr 1fr; } }
   </style>
 </head>
 <body>
 
   <main>
-    <h1>TikTok Scanner V19</h1>
-    <p class="tagline">✅ Direct Client-Side • ✅ Full View/Tim • ✅ No Backend</p>
-    
+    <h1>TikTok Scanner V20</h1>
+    <p class="sub">Giải pháp cuối cùng: CodeTabs Tunneling (Bypass Cloudflare)</p>
+
     <div class="control-box">
-      <input id="u" placeholder="Nhập ID (Ví dụ: letuankhang2002)" value="letuankhang2002" />
-      <input id="n" type="number" value="10" min="1" max="20" placeholder="Số lượng (Max 20)" />
-      <button id="fetchBtn">🚀 QUÉT NGAY</button>
+      <input id="u" placeholder="ID TikTok (vd: letuankhang2002)" value="letuankhang2002" />
+      <input id="n" type="number" value="10" min="1" max="30" placeholder="Số lượng" />
+      <button id="fetchBtn">🚀 QUÉT DATA</button>
       <button id="dl" disabled>💾 EXCEL</button>
     </div>
 
     <div id="log"></div>
     <div id="stats"></div>
-    <div class="table-wrapper">
-        <div id="out"></div>
-    </div>
+    <div class="tbl-box"><div id="out"></div></div>
   </main>
 
   <script>
-    // --- CẤU HÌNH HỆ THỐNG ---
-    // Danh sách các "Gương" (Mirror) ProxiTok hoạt động tốt nhất
-    // Tool sẽ thử lần lượt từng cái cho đến khi thành công
-    const MIRRORS = [
-        "https://proxitok.pabloferreiro.es",
-        "https://tok.artemislena.eu",
-        "https://proxitok.pussthecat.org",
-        "https://tik.fail",
-        "https://proxitok.kyouko.se"
-    ];
-
+    // Cấu hình Proxy CodeTabs (Đây là chìa khóa)
+    const PROXY_BASE = "https://api.codetabs.com/v1/proxy?quest=";
+    
     let currentData = [];
     const logEl = document.getElementById('log');
-
-    function showLog(msg, type) {
+    
+    function log(msg, type) {
         logEl.textContent = msg;
         logEl.className = type;
         logEl.style.display = 'block';
     }
 
-    // --- HÀM CỐT LÕI: GỌI QUA PROXY ALLORIGINS ---
-    async function fetchFromMirror(mirror, username) {
-        const targetUrl = `${mirror}/@${username}`;
-        // Thêm timestamp để tránh cache cũ
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&t=${Date.now()}`;
+    async function fetchData(username, count) {
+        // TikWM API URL
+        const targetUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=${count}&cursor=0`;
         
+        // Ghép với CodeTabs Proxy
+        // encodeURIComponent là bắt buộc để mã hóa URL
+        const finalUrl = PROXY_BASE + encodeURIComponent(targetUrl);
+
         try {
-            const res = await fetch(proxyUrl);
-            const json = await res.json();
+            const res = await fetch(finalUrl);
             
-            if (!json.contents) throw new Error("Empty Proxy Response");
+            // CodeTabs đôi khi trả về JSON, đôi khi trả về text
+            const text = await res.text();
             
-            // Nếu nội dung trả về quá ngắn, có thể là trang lỗi
-            if (json.contents.length < 2000) throw new Error("Invalid Content");
-            
-            return json.contents; // Trả về HTML thô
-        } catch (e) {
-            console.warn(`Mirror ${mirror} thất bại:`, e);
-            return null;
-        }
-    }
-
-    // --- HÀM PHÂN TÍCH HTML (REGEX) ---
-    function parseHTML(html, authorID, domain) {
-        const videos = [];
-        // Regex cắt từng khối video (article class="media")
-        const regexCard = /<article class="media">([\s\S]*?)<\/article>/g;
-        let match;
-
-        while ((match = regexCard.exec(html)) !== null) {
-            const content = match[1];
+            // Kiểm tra xem có phải JSON hợp lệ không
+            let json;
             try {
-                // 1. Video ID
-                const idMatch = content.match(/<a href="\/@.*\/video\/(\d+)"/);
-                const videoId = idMatch ? idMatch[1] : "";
-                
-                // 2. Caption
-                const titleMatch = content.match(/<div class="content">([\s\S]*?)<\/div>/);
-                let title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() : "";
-                
-                // 3. Cover Image
-                const imgMatch = content.match(/src="([^"]+)"/);
-                let cover = imgMatch ? imgMatch[1] : "";
-                if (cover.startsWith("/")) cover = domain + cover; // Fix link tương đối
-                
-                // 4. Stats (View/Like/Cmt/Share)
-                // Tìm theo icon class (fas fa-play, etc.)
-                const views = extractStat(content, "fa-play");
-                const likes = extractStat(content, "fa-heart");
-                const comments = extractStat(content, "fa-comment");
-                const shares = extractStat(content, "fa-share");
+                json = JSON.parse(text);
+            } catch (e) {
+                // Nếu không parse được JSON, có thể Proxy trả về lỗi HTML
+                throw new Error("Proxy phản hồi dữ liệu không đúng định dạng (HTML Error).");
+            }
 
-                if (videoId) {
-                    videos.push({
-                        video_id: videoId,
-                        cover: cover,
-                        title: title,
-                        play_count: parseNum(views),
-                        digg_count: parseNum(likes),
-                        comment_count: parseNum(comments),
-                        share_count: parseNum(shares),
-                        author: { unique_id: authorID }
-                    });
-                }
-            } catch (err) { /* Bỏ qua item lỗi */ }
+            // Kiểm tra Logic TikWM
+            if (json.code === -1) {
+                // Code -1 thường là do ID sai hoặc IP bị chặn tạm thời
+                throw new Error("TikWM từ chối truy cập (IP Blocked/Wrong ID).");
+            }
+            
+            if (!json.data || !json.data.videos) {
+                throw new Error("Không tìm thấy video nào.");
+            }
+
+            return json.data.videos;
+
+        } catch (e) {
+            console.error(e);
+            throw new Error("Lỗi kết nối: " + e.message);
         }
-        return videos;
     }
 
-    function extractStat(html, icon) {
-        // Tìm số liệu sau icon. VD: <i class="fa-play"></i> <span> 1.5M </span>
-        const regex = new RegExp(`${icon}"><\\/i>\\s*<span[^>]*>\\s*([^<]+)`, "i");
-        const m = html.match(regex);
-        return m ? m[1].trim() : "0";
-    }
-
-    function parseNum(str) {
-        if (!str) return 0;
-        let n = parseFloat(str);
-        if (str.toUpperCase().includes('K')) n *= 1000;
-        if (str.toUpperCase().includes('M')) n *= 1000000;
-        return n;
-    }
-
-    // --- SỰ KIỆN CLICK NÚT ---
     document.getElementById('fetchBtn').addEventListener('click', async () => {
         const u = document.getElementById('u').value.trim();
         const n = parseInt(document.getElementById('n').value);
-        if (!u) return alert("Vui lòng nhập ID!");
+        if(!u) return alert("Nhập ID!");
 
         // Reset UI
         const btn = document.getElementById('fetchBtn');
@@ -207,65 +129,57 @@
         document.getElementById('dl').disabled = true;
         document.getElementById('out').innerHTML = '';
         document.getElementById('stats').style.display = 'none';
-        showLog("⏳ Đang kết nối máy chủ vệ tinh...", "log-info");
-        
-        currentData = [];
-        let success = false;
+        log("⏳ Đang đi xuyên qua 'CodeTabs Tunnel'...", "info");
 
-        // Thử lần lượt các Mirror
-        for (const mirror of MIRRORS) {
-            showLog(`🔄 Đang thử nguồn: ${new URL(mirror).hostname}...`, "log-info");
+        try {
+            const videos = await fetchData(u, n);
             
-            const html = await fetchFromMirror(mirror, u);
-            if (html) {
-                // Nếu lấy được HTML, tiến hành phân tích
-                const videos = parseHTML(html, u, mirror);
-                
-                if (videos.length > 0) {
-                    const finalVideos = videos.slice(0, n);
-                    currentData = finalVideos;
-                    
-                    renderStats(finalVideos);
-                    renderTable(finalVideos);
-                    showLog(`✅ THÀNH CÔNG! Dữ liệu từ ${new URL(mirror).hostname}`, "log-success");
-                    document.getElementById('dl').disabled = false;
-                    success = true;
-                    break; // Thoát vòng lặp
-                }
-            }
-            // Nếu thất bại, vòng lặp tự nhảy sang mirror tiếp theo
-        }
+            // Cắt đúng số lượng
+            const finalVideos = videos.slice(0, n);
+            currentData = finalVideos;
 
-        if (!success) {
-            showLog("❌ Thất bại: Tất cả server đều bận hoặc ID không đúng.", "log-error");
+            renderStats(finalVideos);
+            renderTable(finalVideos);
+            log(`✅ THÀNH CÔNG! Lấy được ${finalVideos.length} video.`, "success");
+            document.getElementById('dl').disabled = false;
+
+        } catch (e) {
+            log(`❌ THẤT BẠI: ${e.message}`, "error");
+            
+            // Fallback gợi ý
+            setTimeout(() => {
+                if(confirm("Hệ thống tự động thất bại do bảo mật cao. Bạn có muốn mở dữ liệu gốc để copy thủ công không?")) {
+                   window.open(`https://www.tikwm.com/api/user/posts?unique_id=${u}&count=30`, '_blank');
+                }
+            }, 1000);
+        } finally {
+            btn.disabled = false;
         }
-        btn.disabled = false;
     });
 
-    // --- RENDER UI ---
     function renderStats(list) {
         let t={v:0,l:0,c:0,s:0};
         list.forEach(v=>{ t.v+=v.play_count; t.l+=v.digg_count; t.c+=v.comment_count; t.s+=v.share_count; });
         const f=n=>n.toLocaleString('vi-VN');
-        
         document.getElementById('stats').innerHTML = `
-            <div class="stat-card"><h4>Tổng View</h4><div>${f(t.v)}</div></div>
-            <div class="stat-card"><h4>Tổng Tim</h4><div>${f(t.l)}</div></div>
-            <div class="stat-card"><h4>Tổng Cmt</h4><div>${f(t.c)}</div></div>
-            <div class="stat-card"><h4>Tổng Share</h4><div>${f(t.s)}</div></div>
+            <div class="stat-card"><h4>View</h4><div>${f(t.v)}</div></div>
+            <div class="stat-card"><h4>Tim</h4><div>${f(t.l)}</div></div>
+            <div class="stat-card"><h4>Comment</h4><div>${f(t.c)}</div></div>
+            <div class="stat-card"><h4>Share</h4><div>${f(t.s)}</div></div>
         `;
         document.getElementById('stats').style.display = 'grid';
     }
 
     function renderTable(list) {
-        let h = '<table><thead><tr><th>#</th><th>Thumb</th><th>Caption</th><th>View</th><th>Like</th><th>Link</th></tr></thead><tbody>';
+        let h = '<table><thead><tr><th>#</th><th>Thumb</th><th>Caption</th><th>View</th><th>Like</th><th>Share</th><th>Link</th></tr></thead><tbody>';
         list.forEach((v,i) => {
             h += `<tr>
                 <td>${i+1}</td>
                 <td><img src="${v.cover}"></td>
-                <td>${(v.title||'-').substring(0,60)}</td>
-                <td style="color:#00f2ea;font-weight:bold">${v.play_count.toLocaleString()}</td>
+                <td>${(v.title||'-').substring(0,50)}</td>
+                <td style="color:var(--s)">${v.play_count.toLocaleString()}</td>
                 <td>${v.digg_count.toLocaleString()}</td>
+                <td>${v.share_count.toLocaleString()}</td>
                 <td><a href="https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}" target="_blank">Xem</a></td>
             </tr>`;
         });
@@ -273,20 +187,15 @@
         document.getElementById('out').innerHTML = h;
     }
 
-    // --- DOWNLOAD EXCEL ---
     document.getElementById('dl').addEventListener('click', () => {
         if(!currentData.length) return;
         const u = document.getElementById('u').value;
-        const csvContent = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,Share,LinkVideo\n" + 
-            currentData.map((v,i) => 
-                `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.play_count},${v.digg_count},${v.comment_count},${v.share_count},https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`
-            ).join('\n');
-            
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `TikTok_${u}_${Date.now()}.csv`;
-        link.click();
+        const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,Share,LinkVideo\n" + 
+            currentData.map((v,i) => `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.play_count},${v.digg_count},${v.comment_count},${v.share_count},https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`).join('\n');
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+        a.download = `TikTok_${u}.csv`;
+        a.click();
     });
   </script>
 </body>
