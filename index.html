@@ -1,252 +1,197 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TikTok Scanner V21 (Viewer Scraper)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
-  <style>
-    /* CSS Giao diện Dark Mode Chuyên nghiệp */
-    :root { --primary: #00e676; --secondary: #2979ff; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --border: #334155; }
-    body { font-family:'Be Vietnam Pro',sans-serif; background:var(--bg); color:var(--text); padding:20px; display:flex; flex-direction:column; align-items:center; min-height:100vh; }
-    
-    main { width:100%; max-width:1200px; background:var(--card); border:1px solid var(--border); box-shadow:0 10px 40px rgba(0,0,0,0.5); border-radius:16px; padding:30px; }
-    
-    h1 { font-family:'Fredoka',sans-serif; color:var(--primary); text-align:center; font-size: 32px; margin-bottom: 5px; letter-spacing: 0.5px; }
-    p.sub { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 30px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Data Boomerang V22</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #00f2ea; --secondary: #ff0050; --bg: #111; --card: #222; --text: #fff; }
+        body { font-family: 'Be Vietnam Pro', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
+        
+        .container { width: 100%; max-width: 1000px; }
+        
+        /* HEADER & CONFIG */
+        .header-box { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #333; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: var(--secondary); margin: 0 0 10px 0; }
+        .setup-area { background: #1a1a1a; padding: 15px; border-radius: 10px; border: 2px dashed #444; margin: 20px 0; text-align: left; }
+        
+        .bookmark-btn {
+            display: inline-block; background: #000; color: var(--primary);
+            text-decoration: none; font-weight: 800; padding: 10px 20px;
+            border-radius: 50px; border: 2px solid var(--primary);
+            cursor: grab; margin-top: 10px; box-shadow: 0 0 10px rgba(0,242,234,0.2);
+        }
+        
+        /* CONTROL PANEL */
+        .control-panel { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 15px; border-radius: 10px; border: 1px solid #444; background: #333; color: #fff; font-weight: bold; outline: none; }
+        button { padding: 0 30px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; transition: 0.2s; }
+        #openBtn { background: var(--primary); color: #000; }
+        #openBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,242,234,0.3); }
+        #dlBtn { background: var(--secondary); color: #fff; }
+        button:disabled { background: #444; color: #777; cursor: not-allowed; }
 
-    .control-box { display:grid; grid-template-columns: 2fr 1fr auto auto; gap:12px; background:#0f172a; padding:15px; border-radius:12px; border:1px solid var(--border); }
-    
-    input { background:#1e293b; border:1px solid var(--border); color:#fff; padding:14px; border-radius:8px; font-weight:600; outline:none; transition: 0.2s; }
-    input:focus { border-color:var(--primary); box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.1); }
-    
-    button { padding:0 24px; border-radius:8px; font-weight:700; cursor:pointer; border:none; transition:0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;}
-    #fetchBtn { background:var(--primary); color:#000; }
-    #fetchBtn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-    #dl { background:var(--secondary); color:#fff; }
-    button:disabled { background:#334155; color:#64748b; cursor:not-allowed; transform:none; }
+        /* STATUS & LOGS */
+        #status { text-align: center; margin-bottom: 20px; font-weight: bold; min-height: 24px; color: #aaa; }
+        .pulse { animation: pulse 1.5s infinite; color: var(--primary) !important; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-    /* LOG & STATS */
-    #log { margin:20px 0; padding:12px; text-align:center; border-radius:8px; font-size:14px; display:none; font-weight: 500;}
-    .success { background:rgba(0, 230, 118, 0.15); color:#00e676; border: 1px solid #00e676; } 
-    .error { background:rgba(239, 68, 68, 0.15); color:#ef4444; border: 1px solid #ef4444; } 
-    .info { background:rgba(41, 121, 255, 0.15); color:#2979ff; border: 1px solid #2979ff; }
-
-    #stats { display:none; grid-template-columns:repeat(4,1fr); gap:15px; margin-bottom:20px; }
-    .stat-card { background:#0f172a; padding:15px; text-align:center; border-radius:10px; border:1px solid var(--border); }
-    .stat-card h4 { margin:0 0 5px 0; font-size:11px; color:#94a3b8; text-transform:uppercase; letter-spacing: 1px; }
-    .stat-card div { font-size:22px; font-weight:800; color:var(--text); }
-
-    /* TABLE */
-    .tbl-box { overflow-x:auto; border:1px solid var(--border); border-radius:10px; }
-    table { width:100%; border-collapse:collapse; font-size:14px; }
-    th { background:#0f172a; color:#94a3b8; padding:16px; text-align:left; white-space:nowrap; font-weight: 600; text-transform: uppercase; font-size: 12px;}
-    td { padding:12px 16px; border-bottom:1px solid var(--border); color: #e2e8f0; vertical-align: middle;}
-    tr:last-child td { border-bottom: none; }
-    tr:hover { background: #1e293b; }
-    
-    img { width:48px; height:48px; object-fit:cover; border-radius:6px; border:1px solid var(--border); }
-    a { color:var(--secondary); text-decoration:none; font-weight:600; }
-    a:hover { text-decoration:underline; }
-
-    /* STATUS BADGE */
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-    .source-badge { background: #334155; color: #fff; }
-
-    @media(max-width:768px){ .control-box{ grid-template-columns:1fr; } #stats{ grid-template-columns:1fr 1fr; } }
-  </style>
+        /* TABLE */
+        .table-box { overflow-x: auto; background: var(--card); border-radius: 15px; border: 1px solid #333; padding: 5px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #333; color: var(--primary); padding: 15px; text-align: left; white-space: nowrap; }
+        td { padding: 12px 15px; border-bottom: 1px solid #333; }
+        img { width: 50px; height: 50px; object-fit: cover; border-radius: 5px; border: 1px solid #444; }
+        a { color: var(--secondary); text-decoration: none; }
+    </style>
 </head>
 <body>
 
-  <main>
-    <h1>TikTok Scanner V21</h1>
-    <p class="sub">Công nghệ: Scrape dữ liệu từ các trang Viewer (Urlebird) để tránh bị chặn</p>
+<div class="container">
+    <div class="header-box">
+        <h1>TikTok Boomerang V22 🪃</h1>
+        <p>Mở TikTok -> Bấm nút -> Dữ liệu tự bay về đây!</p>
 
-    <div class="control-box">
-      <input id="u" placeholder="Nhập ID TikTok (vd: letuankhang2002)" value="letuankhang2002" />
-      <input id="n" type="number" value="10" min="1" max="30" placeholder="Số lượng" />
-      <button id="fetchBtn">🚀 Bắt đầu quét</button>
-      <button id="dl" disabled>💾 Xuất Excel</button>
+        <div class="setup-area">
+            <strong>⚙️ CÀI ĐẶT (Làm 1 lần):</strong> Kéo nút bên dưới lên thanh dấu trang (Bookmarks Bar).
+            <div style="text-align: center;">
+                <a class="bookmark-btn" href="javascript:(function(){
+                    /* --- BOOMERANG SCRIPT --- */
+                    try {
+                        if(!window.opener) {
+                             alert('⚠️ LỖI: Bạn phải mở trang này TỪ trang Web Tool (Bấm nút MỞ KÊNH). Không được mở trực tiếp!');
+                             return;
+                        }
+                        
+                        /* LẤY DỮ LIỆU */
+                        var data = [];
+                        var script1 = document.getElementById('__UNIVERSAL_DATA_FOR_REHYDRATION__');
+                        var script2 = document.getElementById('SIGI_STATE');
+                        
+                        if(script1) {
+                            var json = JSON.parse(script1.textContent);
+                            var userModule = json.__DEFAULT_SCOPE__['webapp.user-detail'];
+                            if(userModule && userModule.itemList) data = userModule.itemList;
+                        } 
+                        
+                        if(data.length === 0 && script2) {
+                            var json = JSON.parse(script2.textContent);
+                            if(json.ItemModule) data = Object.values(json.ItemModule);
+                        }
+
+                        if(data.length === 0) {
+                            alert('❌ Chưa tìm thấy video. Hãy cuộn chuột xuống một chút rồi bấm lại!');
+                            return;
+                        }
+
+                        /* CHUẨN HÓA DỮ LIỆU */
+                        var cleanData = data.map(v => ({
+                            id: v.id,
+                            desc: (v.desc||'').replace(/\n/g,' '),
+                            cover: v.video.cover,
+                            stats: v.stats,
+                            author: v.author
+                        }));
+
+                        /* GỬI VỀ TRANG MẸ */
+                        window.opener.postMessage({ type: 'TIKTOK_DATA', data: cleanData }, '*');
+                        
+                        /* THÔNG BÁO VÀ ĐÓNG */
+                        // alert('✅ Đã gửi ' + data.length + ' video về Tool!');
+                        // window.close(); // Tự đóng tab nếu muốn (Trình duyệt có thể chặn)
+
+                    } catch(e) { alert('Lỗi: ' + e.message); }
+                })();" title="Kéo lên thanh Bookmark">🚀 GỬI DATA VỀ TOOL</a>
+            </div>
+        </div>
     </div>
 
-    <div id="log"></div>
-    <div id="stats"></div>
-    <div class="tbl-box"><div id="out"></div></div>
-  </main>
+    <div class="control-panel">
+        <input id="u" type="text" placeholder="Nhập ID TikTok (Ví dụ: letuankhang2002)" value="letuankhang2002">
+        <button id="openBtn">📂 1. MỞ KÊNH</button>
+        <button id="dlBtn" disabled>💾 2. TẢI EXCEL</button>
+    </div>
 
-  <script>
+    <div id="status">Sẵn sàng. Hãy nhập ID và bấm Mở Kênh.</div>
+
+    <div class="table-box">
+        <div id="out"></div>
+    </div>
+</div>
+
+<script>
     let currentData = [];
-    const logEl = document.getElementById('log');
-    
-    function log(msg, type) {
-        logEl.innerHTML = msg;
-        logEl.className = type;
-        logEl.style.display = 'block';
-    }
+    const statusEl = document.getElementById('status');
+    const uInput = document.getElementById('u');
 
-    // --- CẤU HÌNH NGUỒN QUÉT (URLEBIRD) ---
-    // Urlebird là trang xem TikTok ẩn danh, nó hiện đầy đủ view/tim
-    const BASE_URL = "https://urlebird.com";
-
-    async function fetchUrlebird(username) {
-        // Gọi qua AllOrigins để tránh CORS
-        // Urlebird url format: https://urlebird.com/user/{username}/
-        const targetUrl = `${BASE_URL}/user/${username}/`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-
-        try {
-            const res = await fetch(proxyUrl);
-            const json = await res.json();
-            
-            if (!json.contents) throw new Error("Không kết nối được với Urlebird.");
-            
-            return parseUrlebirdHTML(json.contents, username);
-        } catch (e) {
-            console.error(e);
-            throw new Error("Lỗi kết nối hoặc ID không tồn tại trên Urlebird.");
-        }
-    }
-
-    // --- BỘ PHÂN TÍCH HTML URLEBIRD (REGEX) ---
-    function parseUrlebirdHTML(html, authorID) {
-        const videos = [];
-        
-        // Cắt từng khối video: <div class="thumb"> ... </div>
-        // Lưu ý: Class name có thể thay đổi, ta dùng pattern rộng hơn
-        const cardRegex = /<div class="thumb">([\s\S]*?)<\/div>\s*<div class="info">/g;
-        let match;
-
-        while ((match = cardRegex.exec(html)) !== null) {
-            const content = match[1];
-            try {
-                // 1. Video Link & ID
-                // <a href="https://urlebird.com/video/id-7467.../">
-                const linkMatch = content.match(/href="([^"]+)"/);
-                const link = linkMatch ? linkMatch[1] : "";
-                
-                // Urlebird link thường có dạng .../video/tieu-de-id/
-                // Ta trích xuất ID từ cuối chuỗi
-                const idMatch = link.match(/(\d+)\/$/);
-                const videoId = idMatch ? idMatch[1] : "Unknown";
-
-                // 2. Ảnh Thumb
-                const imgMatch = content.match(/src="([^"]+)"/);
-                const cover = imgMatch ? imgMatch[1] : "";
-
-                // 3. Stats (View/Like) - Urlebird hiển thị dạng text
-                // <div class="stats"> ... <i class="fa fa-eye"></i> 1.5M ... </div>
-                const viewMatch = content.match(/fa-eye"><\/i>\s*([\d\.KMB]+)/);
-                const likeMatch = content.match(/fa-thumbs-up"><\/i>\s*([\d\.KMB]+)/);
-                const cmtMatch = content.match(/fa-comment"><\/i>\s*([\d\.KMB]+)/);
-
-                // 4. Caption (Nằm trong alt của ảnh hoặc title)
-                const titleMatch = content.match(/alt="([^"]+)"/);
-                const title = titleMatch ? titleMatch[1] : "No Caption";
-
-                videos.push({
-                    video_id: videoId,
-                    cover: cover,
-                    title: title,
-                    play_count: parseNum(viewMatch ? viewMatch[1] : "0"),
-                    digg_count: parseNum(likeMatch ? likeMatch[1] : "0"),
-                    comment_count: parseNum(cmtMatch ? cmtMatch[1] : "0"),
-                    share_count: 0, // Urlebird thường không hiện share
-                    author: { unique_id: authorID },
-                    link_origin: link // Link gốc trên Urlebird (có thể mở được)
-                });
-            } catch (e) { }
-        }
-        return videos;
-    }
-
-    function parseNum(str) {
-        if (!str) return 0;
-        let n = parseFloat(str);
-        if (str.includes('K')) n *= 1000;
-        if (str.includes('M')) n *= 1000000;
-        return n;
-    }
-
-    // --- MAIN LOGIC ---
-    document.getElementById('fetchBtn').addEventListener('click', async () => {
-        const u = document.getElementById('u').value.trim();
-        const n = parseInt(document.getElementById('n').value);
+    // 1. MỞ TRANG TIKTOK
+    document.getElementById('openBtn').addEventListener('click', () => {
+        const u = uInput.value.trim();
         if(!u) return alert("Nhập ID!");
+        
+        statusEl.innerHTML = "⏳ Đang đợi dữ liệu từ tab TikTok... (Hãy sang tab đó và bấm Bookmarklet)";
+        statusEl.className = "pulse";
+        
+        // Mở tab mới
+        window.open(`https://www.tiktok.com/@${u}`, '_blank');
+    });
 
-        // Reset
-        const btn = document.getElementById('fetchBtn');
-        btn.disabled = true;
-        btn.innerHTML = "⏳ Đang kết nối Urlebird...";
-        document.getElementById('dl').disabled = true;
-        document.getElementById('out').innerHTML = '';
-        document.getElementById('stats').style.display = 'none';
-        log("Đang lấy dữ liệu từ Server dự phòng (Urlebird)...", "info");
-
-        try {
-            const videos = await fetchUrlebird(u);
+    // 2. LẮNG NGHE DỮ LIỆU TRẢ VỀ (BOOMERANG)
+    window.addEventListener('message', (event) => {
+        // Kiểm tra xem có phải data từ TikTok không
+        if (event.data && event.data.type === 'TIKTOK_DATA') {
+            const videos = event.data.data;
             
-            if (videos.length === 0) {
-                throw new Error("Không tìm thấy video nào (Có thể Urlebird chưa cập nhật user này).");
-            }
-
-            // Cắt số lượng
-            const finalVideos = videos.slice(0, n);
-            currentData = finalVideos;
-
-            renderStats(finalVideos);
-            renderTable(finalVideos);
-            log(`✅ <b>THÀNH CÔNG!</b> Đã lấy ${finalVideos.length} video từ Urlebird.`, "success");
-            document.getElementById('dl').disabled = false;
-
-        } catch (e) {
-            log(`❌ <b>LỖI:</b> ${e.message}<br>Gợi ý: Hãy thử nhập ID khác hoặc dùng Bookmarklet.`, "error");
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = "🚀 Bắt đầu quét";
+            // Xử lý dữ liệu
+            currentData = videos;
+            renderTable(videos);
+            
+            statusEl.innerHTML = `✅ Đã nhận thành công ${videos.length} video!`;
+            statusEl.className = "";
+            document.getElementById('dlBtn').disabled = false;
+            
+            // Có thể play âm thanh thông báo nếu muốn
+            // new Audio('ding.mp3').play();
         }
     });
 
-    function renderStats(list) {
-        let t={v:0,l:0,c:0};
-        list.forEach(v=>{ t.v+=v.play_count; t.l+=v.digg_count; t.c+=v.comment_count; });
-        const f=n=>n.toLocaleString('vi-VN');
-        
-        document.getElementById('stats').innerHTML = `
-            <div class="stat-card"><h4>Tổng View</h4><div>${f(t.v)}</div></div>
-            <div class="stat-card"><h4>Tổng Tim</h4><div>${f(t.l)}</div></div>
-            <div class="stat-card"><h4>Tổng Comment</h4><div>${f(t.c)}</div></div>
-            <div class="stat-card"><h4>Nguồn Dữ Liệu</h4><div style="font-size:16px;color:#94a3b8">Urlebird.com</div></div>
-        `;
-        document.getElementById('stats').style.display = 'grid';
-    }
-
     function renderTable(list) {
-        let h = '<table><thead><tr><th>#</th><th>Thumb</th><th>Caption</th><th>View</th><th>Like</th><th>Cmt</th><th>Link</th></tr></thead><tbody>';
+        let h = '<table><thead><tr><th>#</th><th>Thumb</th><th>Caption</th><th>View</th><th>Tim</th><th>Cmt</th><th>Share</th><th>Link</th></tr></thead><tbody>';
         list.forEach((v,i) => {
+            const author = typeof v.author === 'string' ? v.author : v.author.uniqueId;
             h += `<tr>
                 <td>${i+1}</td>
                 <td><img src="${v.cover}"></td>
-                <td>${(v.title||'-').substring(0,60)}</td>
-                <td style="color:var(--primary)">${v.play_count.toLocaleString()}</td>
-                <td>${v.digg_count.toLocaleString()}</td>
-                <td>${v.comment_count.toLocaleString()}</td>
-                <td><a href="https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}" target="_blank">Xem</a></td>
+                <td>${(v.desc||'-').substring(0,60)}</td>
+                <td style="color:#00f2ea;font-weight:bold">${v.stats.playCount.toLocaleString()}</td>
+                <td>${v.stats.diggCount.toLocaleString()}</td>
+                <td>${v.stats.commentCount.toLocaleString()}</td>
+                <td>${v.stats.shareCount.toLocaleString()}</td>
+                <td><a href="https://www.tiktok.com/@${author}/video/${v.id}" target="_blank">Xem</a></td>
             </tr>`;
         });
         h += '</tbody></table>';
         document.getElementById('out').innerHTML = h;
     }
 
-    document.getElementById('dl').addEventListener('click', () => {
+    // 3. TẢI EXCEL
+    document.getElementById('dlBtn').addEventListener('click', () => {
         if(!currentData.length) return;
-        const u = document.getElementById('u').value;
-        const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,LinkVideo\n" + 
-            currentData.map((v,i) => `${i+1},${v.cover},"${(v.title||'').replace(/"/g,'""')}",${v.play_count},${v.digg_count},${v.comment_count},https://www.tiktok.com/@${v.author.unique_id}/video/${v.video_id}`).join('\n');
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-        a.download = `TikTok_Urlebird_${u}.csv`;
-        a.click();
+        const u = uInput.value;
+        const csv = "\uFEFFSTT,LinkAnh,Caption,View,Tim,Comment,Share,LinkVideo\n" + 
+            currentData.map((v,i) => {
+                const author = typeof v.author === 'string' ? v.author : v.author.uniqueId;
+                return `${i+1},${v.cover},"${(v.desc||'').replace(/"/g,'""')}",${v.stats.playCount},${v.stats.diggCount},${v.stats.commentCount},${v.stats.shareCount},https://www.tiktok.com/@${author}/video/${v.id}`;
+            }).join('\n');
+            
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `TikTok_${u}_${Date.now()}.csv`;
+        link.click();
     });
-  </script>
+</script>
+
 </body>
 </html>
