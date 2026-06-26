@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tiktok Get Video From Channel</title>
+  <title>TikTok Get Video From Channel V2</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,30 +11,31 @@
 
   <style>
     :root {
-      --primary: #ff0050;    /* Đỏ TikTok */
-      --secondary: #00f2ea;  /* Xanh Cyan Neon */
-      --bg-color: #f0f4f8;   /* Nền xám xanh nhạt */
+      --primary: #ff0050;
+      --secondary: #00f2ea;
+      --bg-color: #f0f4f8;
       --card-bg: #ffffff;
       --border-color: #000000;
-      --border-width: 3px;     /* Độ dày viền */
-      --shadow-offset: 6px;    /* Độ đổ bóng cứng */
+      --border-width: 3px;
+      --shadow-offset: 6px;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Be Vietnam Pro', sans-serif; /* Font mặc định cho toàn web */
+      font-family: 'Be Vietnam Pro', sans-serif;
       background-color: var(--bg-color);
+      background-image: radial-gradient(#000 1px, transparent 1px);
+      background-size: 20px 20px;
       color: #000;
       padding: 20px;
-      margin: 0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    /* --- NAVIGATION --- */
+    /* NAV */
     .top-nav {
       width: 100%;
       max-width: 1400px;
@@ -58,22 +59,13 @@
       gap: 8px;
       font-size: 14px;
     }
+    .home-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0px var(--border-color); background: var(--secondary); }
+    .home-btn:active { transform: translate(2px,2px); box-shadow: none; }
 
-    .home-btn:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px var(--border-color);
-      background: var(--secondary);
-    }
-
-    .home-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px var(--border-color);
-    }
-
-    /* --- MAIN CARD --- */
+    /* MAIN */
     main {
       width: 100%;
-      max-width: 1400px; /* Rộng hơn để chứa 5 cột */
+      max-width: 1400px;
       background: var(--card-bg);
       border: var(--border-width) solid var(--border-color);
       box-shadow: var(--shadow-offset) var(--shadow-offset) 0px var(--border-color);
@@ -82,60 +74,46 @@
       margin-bottom: 40px;
     }
 
-    /* --- HEADER (Giữ Fredoka cho tên Tool) --- */
     h1 {
-      font-family: 'Fredoka', sans-serif; 
-      font-size: 42px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 38px;
       text-align: center;
       color: var(--primary);
       -webkit-text-stroke: 1.5px #000;
       text-shadow: 3px 3px 0px #000;
-      margin-top: 0;
-      margin-bottom: 40px;
+      margin-bottom: 35px;
       letter-spacing: 1px;
     }
 
-    /* --- CONTROLS FORM --- */
+    /* CONTROLS */
     .controls {
       display: grid;
-      grid-template-columns: 2fr 1fr auto auto;
+      grid-template-columns: 2fr 1fr;
       gap: 20px;
-      margin-bottom: 40px;
-      align-items: end;
+      margin-bottom: 30px;
       background: #fff;
       padding: 20px;
       border: 2px dashed #000;
       border-radius: 15px;
     }
 
-    .input-group {
-      display: flex;
-      flex-direction: column;
-    }
+    .input-group { display: flex; flex-direction: column; }
 
     label {
       font-weight: 700;
       margin-bottom: 10px;
-      font-size: 15px;
+      font-size: 14px;
       color: #000;
       text-transform: uppercase;
     }
 
-    .hint {
-      font-size: 12px;
-      color: #666;
-      font-weight: 500;
-      text-transform: none;
-    }
+    .hint { font-size: 12px; color: #666; font-weight: 500; text-transform: none; }
 
-    /* Input & Button dùng Be Vietnam Pro */
-    input, button {
-      font-family: 'Be Vietnam Pro', sans-serif;
-    }
+    input, button, select { font-family: 'Be Vietnam Pro', sans-serif; }
 
     input {
       padding: 14px 18px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       border: 2px solid var(--border-color);
       border-radius: 12px;
@@ -143,17 +121,22 @@
       outline: none;
       transition: all 0.2s;
     }
-
     input:focus {
       background-color: #e0f7fa;
-      transform: translate(-2px, -2px);
+      transform: translate(-2px,-2px);
       box-shadow: 5px 5px 0px var(--border-color);
       border-color: var(--primary);
     }
 
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
     button {
-      padding: 0 30px;
-      font-size: 16px;
+      padding: 0 24px;
+      font-size: 15px;
       font-weight: 700;
       border: 2px solid var(--border-color);
       border-radius: 12px;
@@ -163,516 +146,496 @@
       height: 52px;
       white-space: nowrap;
       text-transform: uppercase;
+      flex: 1;
+    }
+    button:hover:not(:disabled) { transform: translate(-3px,-3px); box-shadow: 6px 6px 0px var(--border-color); }
+    button:active:not(:disabled) { transform: translate(2px,2px); box-shadow: none; }
+    button:disabled { background-color: #ddd; color: #888; border-color: #999; box-shadow: none; cursor: not-allowed; transform: none; }
+
+    #fetchBtn   { background-color: var(--primary); color: #fff; }
+    #stopBtn    { background-color: #ff8800; color: #fff; display: none; }
+    #downloadCsvBtn { background-color: var(--secondary); color: #000; }
+    #copySheetBtn   { background-color: #34a853; color: #fff; }
+
+    /* PROGRESS */
+    .progress-wrap {
+      display: none;
+      height: 18px;
+      background: #fff;
+      border: 2px solid #000;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 15px;
+      box-shadow: 2px 2px 0 #000;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: repeating-linear-gradient(45deg, var(--secondary), var(--secondary) 10px, #00c4bd 10px, #00c4bd 20px);
+      border-right: 2px solid #000;
+      transition: width 0.3s ease;
     }
 
-    #fetchBtn {
-      background-color: var(--primary);
-      color: #fff;
+    /* STATUS */
+    #status {
+      margin-bottom: 25px;
+      padding: 15px 20px;
+      border: 3px solid var(--border-color);
+      border-radius: 15px;
+      background: #f8f8f8;
+      font-weight: 600;
+      box-shadow: 4px 4px 0px #ccc;
+      min-height: 52px;
+      display: flex;
+      align-items: center;
+      font-size: 15px;
     }
+    .log-loading { color: #007bff; background: #e8f4ff !important; border-color: #007bff !important; }
+    .log-success { color: #009944; background: #e8f5e9 !important; border-color: #009944 !important; box-shadow: 4px 4px 0 #005c29 !important; }
+    .log-error   { color: #ff0050; background: #ffebee !important; border-color: #ff0050 !important; box-shadow: 4px 4px 0 #b30038 !important; }
 
-    #fetchBtn:hover:not(:disabled) {
-      transform: translate(-3px, -3px);
-      box-shadow: 6px 6px 0px var(--border-color);
-      filter: brightness(1.1);
-    }
-
-    #downloadCsvBtn {
-      background-color: var(--secondary);
-      color: #000;
-    }
-
-    #downloadCsvBtn:hover:not(:disabled) {
-      transform: translate(-3px, -3px);
-      box-shadow: 6px 6px 0px var(--border-color);
-      filter: brightness(1.05);
-    }
-
-    button:active:not(:disabled) {
-      transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px var(--border-color);
-    }
-
-    button:disabled {
-      background-color: #ddd;
-      color: #888;
-      border-color: #999;
-      box-shadow: none;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    /* --- STATS BOARD (5 Columns Row) --- */
+    /* STATS BOARD */
     #stats-board {
       display: none;
-      grid-template-columns: repeat(5, 1fr); /* 5 Cột đều nhau */
-      gap: 20px;
-      margin-bottom: 40px;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
     }
-
     .stat-card {
       background: #fff;
       border: 3px solid var(--border-color);
       border-radius: 15px;
-      padding: 20px 10px;
+      padding: 18px 10px;
       text-align: center;
       box-shadow: 5px 5px 0px var(--border-color);
       transition: transform 0.2s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
+    .stat-card:hover { transform: translateY(-4px); background: #fff9fa; }
+    .stat-icon  { font-size: 24px; margin-bottom: 6px; }
+    .stat-title { font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; text-transform: uppercase; }
+    .stat-value { font-size: 22px; font-weight: 800; color: #000; margin-bottom: 6px; }
+    .stat-avg   { font-size: 12px; font-weight: 700; background: var(--secondary); color: #000; border: 2px solid #000; border-radius: 50px; padding: 3px 10px; box-shadow: 2px 2px 0 #000; }
 
-    .stat-card:hover {
-      transform: translateY(-5px);
-      background-color: #fff9fa;
-    }
-
-    .stat-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 800;
-      color: #000;
-      margin-bottom: 8px;
-    }
-
-    .stat-avg {
-      font-size: 13px;
-      font-weight: 700;
-      background: var(--secondary);
-      color: #000;
-      border: 2px solid var(--border-color);
-      border-radius: 50px;
-      padding: 4px 12px;
-      box-shadow: 2px 2px 0px var(--border-color);
-    }
-
-    /* --- LOGGER --- */
-    #status {
-      margin-bottom: 25px;
-      padding: 20px;
-      border: 3px solid var(--border-color);
-      border-radius: 15px;
-      background: #fff;
-      font-weight: 600;
-      box-shadow: 4px 4px 0px #ccc;
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-    
-    .log-loading { color: #007bff; }
-    .log-success { color: #009944; background: #e8f5e9 !important; border-color: #009944 !important; box-shadow: 4px 4px 0 #005c29 !important;}
-    .log-error { color: #ff0050; background: #ffebee !important; border-color: #ff0050 !important; box-shadow: 4px 4px 0 #b30038 !important;}
-
-    /* --- TABLE (Update đường kẻ đồng nhất) --- */
-    .table-container {
+    /* TABLE */
+    .table-wrap {
       overflow-x: auto;
       border: 3px solid var(--border-color);
       border-radius: 15px;
       box-shadow: 6px 6px 0px var(--border-color);
       background: #fff;
     }
-
     table {
       width: 100%;
-      border-collapse: collapse; /* Gộp đường viền để tạo lưới liền mạch */
-      min-width: 1000px;
+      border-collapse: collapse;
+      min-width: 1100px;
+      font-size: 13px;
     }
-
     th, td {
-      border: 2px solid var(--border-color); /* Kẻ khung đen cho tất cả các ô */
-      padding: 15px;
+      border: 1px solid #000;
+      padding: 10px 12px;
       text-align: left;
       vertical-align: middle;
-      font-size: 15px;
     }
-
     th {
       background-color: var(--secondary);
       color: #000;
       font-weight: 700;
       text-transform: uppercase;
       white-space: nowrap;
+      font-size: 12px;
+      border-bottom: 2px solid #000;
     }
-
-    td {
-      font-weight: 500;
-      color: #000;
-    }
-
+    td { font-weight: 500; }
     tr:nth-child(even) { background-color: #f8f9fa; }
     tr:hover { background-color: #fffde7; }
 
-    /* Table internal elements */
-    .col-thumb img {
-      width: 60px;
-      height: 60px;
+    .thumb img {
+      width: 54px; height: 54px;
       object-fit: cover;
-      border: 2px solid var(--border-color);
-      border-radius: 10px;
-      box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+      border: 2px solid #000;
+      border-radius: 8px;
       display: block;
     }
+    .badge-ok  { background: #c3e6cb; color: #155724; border: 2px solid #155724; padding: 4px 10px; border-radius: 10px; font-weight: 800; font-size: 11px; box-shadow: 2px 2px 0 #155724; display: inline-block; }
+    .num       { font-weight: 700; color: #0075ff; }
+    a.video-link { color: var(--primary); font-weight: 700; text-decoration: none; border-bottom: 2px solid transparent; transition: 0.2s; }
+    a.video-link:hover { border-bottom: 2px solid var(--primary); background: #ffe6eb; }
 
-    .col-status {
-      background: #c3e6cb;
-      color: #155724;
-      border: 2px solid #155724;
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-weight: 800;
-      font-size: 12px;
-      box-shadow: 2px 2px 0px #155724;
-      display: inline-block;
-      text-align: center;
+    /* COPY TOAST */
+    .copy-toast {
+      display: none;
+      position: fixed;
+      bottom: 30px; left: 50%;
+      transform: translateX(-50%);
+      background: #34a853; color: #fff;
+      font-weight: 700; padding: 12px 28px;
+      border-radius: 50px; border: 2px solid #000;
+      box-shadow: 4px 4px 0 #000;
+      z-index: 9999; font-size: 15px;
+    }
+    .copy-toast.show { display: block; animation: fadeUp 2.2s ease forwards; }
+    @keyframes fadeUp {
+      0%  { opacity:0; bottom:20px }
+      15% { opacity:1; bottom:30px }
+      75% { opacity:1; bottom:30px }
+      100%{ opacity:0; bottom:40px }
     }
 
-    a {
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 700;
-      border-bottom: 2px solid transparent;
-      transition: 0.2s;
-    }
-    a:hover {
-      border-bottom: 2px solid var(--primary);
-      background: #ffe6eb;
-    }
-
-    /* --- RESPONSIVE --- */
-    @media (max-width: 1100px) {
-      /* Tablet: 3 trên, 2 dưới */
-      #stats-board {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
+    @media (max-width: 1100px) { #stats-board { grid-template-columns: repeat(3,1fr); } }
     @media (max-width: 768px) {
       main { padding: 20px; }
-      h1 { font-size: 28px; }
-      
-      .controls {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
-      
-      button { width: 100%; }
-      
-      /* Mobile: 2 cột */
-      #stats-board {
-        grid-template-columns: 1fr 1fr;
-      }
+      h1   { font-size: 26px; }
+      .controls { grid-template-columns: 1fr; }
+      .btn-row { flex-wrap: wrap; }
+      button { flex: 1 1 45%; }
+      #stats-board { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <nav class="top-nav">
-    <a href="https://thanhnhut201294.github.io/tool/" class="home-btn">
-      <span>↩</span> Quay lại trang chủ
-    </a>
-  </nav>
+<nav class="top-nav">
+  <a href="https://thanhnhut201294.github.io/tool/" class="home-btn">
+    <span>↩</span> Quay lại trang chủ
+  </a>
+</nav>
 
-  <main>
-    <h1>Tiktok Get Video From Channel</h1>
-    
-    <div class="controls">
-      <div class="input-group">
-        <label>Link Kênh / ID TikTok</label>
-        <input id="username" placeholder="Ví dụ: letuankhang2002" value="https://www.tiktok.com/@letuankhang2002" />
-      </div>
-      <div class="input-group">
-        <label>Số lượng <span class="hint">(Max 48)</span></label>
-        <input id="limit" type="number" value="10" min="1" max="48" />
-      </div>
-      <button id="fetchBtn">🚀 Quét Data</button>
-      <button id="downloadCsvBtn" disabled>💾 Tải Excel</button>
+<main>
+  <h1>📹 TikTok Get Videos V2</h1>
+
+  <div class="controls">
+    <div class="input-group">
+      <label>Link Kênh / Username TikTok</label>
+      <input id="username" placeholder="Ví dụ: https://www.tiktok.com/@letuankhang2002 hoặc letuankhang2002" />
     </div>
+    <div class="input-group">
+      <label>Số lượng video <span class="hint">(Max 48)</span></label>
+      <input id="limit" type="number" value="10" min="1" max="48" />
+    </div>
+    <div class="btn-row" style="grid-column:1/-1">
+      <button id="fetchBtn">🚀 Quét Data</button>
+      <button id="stopBtn">⏹ Dừng</button>
+      <button id="downloadCsvBtn" disabled>💾 Tải CSV</button>
+      <button id="copySheetBtn" disabled>📋 Copy → Google Sheets</button>
+    </div>
+  </div>
 
-    <div id="stats-board"></div>
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+  <div id="status">👋 Sẵn sàng. Dán link kênh vào ô trên để bắt đầu!</div>
 
-    <div id="status">👋 Sẵn sàng. Dán link kênh vào ô trên để bắt đầu!</div>
-    <div id="output" class="table-container"></div>
-  </main>
+  <div id="stats-board"></div>
+  <div id="output" class="table-wrap"></div>
+</main>
 
-  <script>
-    // === CẤU HÌNH PROXY XOAY VÒNG ===
-    const PROXY_LIST = [
-        { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'direct' },
-        { url: 'https://api.allorigins.win/get?url=', type: 'wrapped' },
-        { url: 'https://corsproxy.io/?', type: 'direct' }
-    ];
+<div id="copyToast" class="copy-toast">✅ Đã copy! Mở Google Sheets → Ctrl+V</div>
 
-    let currentData = []; 
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+let isRunning = false;
+let currentData = [];
 
-    function log(msg, type = 'default') {
-      const el = document.getElementById('status');
-      el.textContent = msg;
-      el.className = `log-${type}`;
+const $ = id => document.getElementById(id);
+
+function log(msg, type = 'default') {
+  const el = $('status');
+  el.textContent = msg;
+  el.className = `log-${type}`;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ============================================================
+// TIKWM — gọi thẳng, không proxy
+// ============================================================
+async function tikwmFetch(url) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.code === -1) throw new Error('Rate limit / blocked');
+  if (data.code !== 0) throw new Error(`TikWM lỗi: ${data.msg || data.code}`);
+  return data;
+}
+
+// ============================================================
+// EXTRACT USERNAME
+// ============================================================
+function extractUsername(input) {
+  input = (input || '').trim();
+  try {
+    if (input.includes('tiktok.com')) {
+      const m = input.match(/@([a-zA-Z0-9_.]+)/);
+      return m ? m[1] : null;
+    }
+    if (input.startsWith('@')) return input.substring(1);
+    return input || null;
+  } catch(e) { return null; }
+}
+
+// ============================================================
+// FETCH VIDEOS
+// ============================================================
+async function fetchVideos(username, limit) {
+  const all = [];
+  let cursor = 0;
+  let hasMore = true;
+  if (limit > 48) limit = 48;
+
+  while (hasMore && all.length < limit && isRunning) {
+    const url = `https://www.tikwm.com/api/user/posts?unique_id=${encodeURIComponent(username)}&count=33&cursor=${cursor}`;
+    const data = await tikwmFetch(url);
+
+    if (!data?.data?.videos || data.data.videos.length === 0) {
+      if (all.length === 0) throw new Error('Kênh private hoặc không tìm thấy');
+      break;
     }
 
-    // === HÀM TÁCH USERNAME TỪ LINK ===
-    function extractUsername(input) {
-        if (!input) return '';
-        let clean = input.trim();
-        
-        // Trường hợp 1: Link đầy đủ chứa @
-        const atIndex = clean.indexOf('@');
-        if (atIndex !== -1) {
-            let afterAt = clean.substring(atIndex + 1);
-            return afterAt.split('?')[0].split('/')[0];
-        }
-        
-        // Trường hợp 2: Link tiktok.com/user
-        if (clean.includes('tiktok.com/')) {
-             clean = clean.replace(/\/$/, '');
-             return clean.split('/').pop();
-        }
-
-        // Trường hợp 3: ID thuần
-        return clean;
+    for (const v of data.data.videos) {
+      if (all.length >= limit) break;
+      all.push(v);
     }
 
-    // Smart Fetch
-    async function smartFetch(targetUrl) {
-        for (const proxy of PROXY_LIST) {
-            try {
-                const finalUrl = proxy.url + encodeURIComponent(targetUrl);
-                const res = await fetch(finalUrl);
-                if (!res.ok) throw new Error('Network Error');
-                
-                let data;
-                if (proxy.type === 'wrapped') {
-                    const temp = await res.json();
-                    if(!temp.contents) throw new Error("No contents");
-                    data = JSON.parse(temp.contents);
-                } else {
-                    data = await res.json();
-                }
+    cursor = data.data.cursor;
+    hasMore = data.data.hasMore;
 
-                if (data.code === -1) throw new Error("Limit Reached");
-                return data; 
-            } catch (e) {
-                // Fail silently, try next proxy
-            }
-        }
-        throw new Error("Không thể kết nối Server. Vui lòng thử lại sau vài phút.");
-    }
+    // Update progress bar (indeterminate style — just fill proportionally)
+    const pct = Math.min((all.length / limit) * 100, 95);
+    $('progressBar').style.width = pct + '%';
+    log(`⏳ Đang tải... ${all.length}/${limit} video`, 'loading');
 
-    // Logic lấy video
-    async function fetchTikTokVideos(rawInput, maxVideos) {
-      const username = extractUsername(rawInput);
-      if (!username) throw new Error("Không tìm thấy Username hợp lệ!");
+    if (hasMore && all.length < limit && isRunning) await sleep(800);
+  }
 
-      log(`Đang quét dữ liệu cho ID: ${username}...`, 'loading');
+  $('progressBar').style.width = '100%';
+  return all;
+}
 
-      if (maxVideos > 48) {
-          maxVideos = 48;
-          document.getElementById('limit').value = 48;
-      }
+// ============================================================
+// RENDER STATS
+// ============================================================
+function renderStats(videos) {
+  const board = $('stats-board');
+  if (!videos.length) { board.style.display = 'none'; return; }
 
-      const allVideos = [];
-      const processedIds = new Set();
-      let cursor = 0;
-      let hasMore = true;
+  let totalView=0, totalLike=0, totalCmt=0, totalSave=0, totalShare=0;
+  videos.forEach(v => {
+    totalView  += v.play_count    || 0;
+    totalLike  += v.digg_count    || 0;
+    totalCmt   += v.comment_count || 0;
+    totalSave  += v.collect_count || 0;
+    totalShare += v.share_count   || 0;
+  });
 
-      while (hasMore) {
-        log(`⏳ Đang tải... Đã lấy: ${allVideos.length}/${maxVideos} video (ID: ${username})`, 'loading');
+  const c = videos.length;
+  const fmt = n => n.toLocaleString('vi-VN');
+  const avg = t => Math.round(t/c).toLocaleString('vi-VN');
 
-        const targetUrl = `https://www.tikwm.com/api/user/posts?unique_id=${username}&count=30&cursor=${cursor}`;
-        const data = await smartFetch(targetUrl);
-        
-        if (!data?.data?.videos) {
-            if(allVideos.length === 0) throw new Error(`Không tìm thấy dữ liệu cho ID: ${username} (Kênh Riêng tư hoặc Sai Link)`);
-            break;
-        }
+  const card = (icon, title, total) => `
+    <div class="stat-card">
+      <div class="stat-icon">${icon}</div>
+      <div class="stat-title">${title}</div>
+      <div class="stat-value">${fmt(total)}</div>
+      <div class="stat-avg">TB: ${avg(total)}</div>
+    </div>`;
 
-        for (const v of data.data.videos) {
-          if (!v.video_id || processedIds.has(v.video_id)) continue;
-          if (allVideos.length >= maxVideos) { hasMore = false; break; }
-          allVideos.push(v);
-          processedIds.add(v.video_id);
-        }
+  board.innerHTML =
+    card('👁️', 'Lượt Xem',   totalView)  +
+    card('❤️', 'Lượt Tim',   totalLike)  +
+    card('💬', 'Bình Luận',  totalCmt)   +
+    card('🔁', 'Chia Sẻ',   totalShare) +
+    card('🔖', 'Lượt Lưu',  totalSave);
 
-        cursor = data.data.cursor;
-        if (!data.data.hasMore || allVideos.length >= maxVideos) {
-             hasMore = false;
-        } else {
-             await new Promise(r => setTimeout(r, 1500)); 
-        }
-      }
-      return { videos: allVideos, realUsername: username };
-    }
+  board.style.display = 'grid';
+}
 
-    // Render Stats
-    function renderStats(videos) {
-        const board = document.getElementById('stats-board');
-        if (videos.length === 0) {
-            board.style.display = 'none';
-            return;
-        }
+// ============================================================
+// RENDER TABLE
+// Thứ tự cột: STT | Ảnh | Kênh | Caption | View | ER% | Tim | Cmt | Share | Save | Link | Status
+// ============================================================
+function renderTable(videos, username) {
+  const wrap = $('output');
+  wrap.innerHTML = '';
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Ảnh</th>
+        <th>Kênh</th>
+        <th>Caption</th>
+        <th>Lượt Xem 👁️</th>
+        <th>ER% 📊</th>
+        <th>Tim ❤️</th>
+        <th>Bình Luận 💬</th>
+        <th>Chia Sẻ 🔁</th>
+        <th>Lưu 🔖</th>
+        <th>Link Video</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody></tbody>`;
 
-        let totalView = 0, totalLike = 0, totalCmt = 0, totalSave = 0, totalShare = 0;
+  const tbody = table.querySelector('tbody');
 
-        videos.forEach(v => {
-            totalView += (v.play_count || 0);
-            totalLike += (v.digg_count || 0);
-            totalCmt  += (v.comment_count || 0);
-            totalSave += (v.collect_count || 0);
-            totalShare += (v.share_count || 0);
-        });
+  videos.forEach((v, i) => {
+    const author    = v.author?.unique_id || username;
+    const caption   = v.title || '-';
+    const cover     = v.origin_cover || v.cover || '';
+    const view      = v.play_count    || 0;
+    const like      = v.digg_count    || 0;
+    const cmt       = v.comment_count || 0;
+    const share     = v.share_count   || 0;
+    const save      = v.collect_count || 0;
+    const interact  = like + cmt + share + save;
+    const er        = view > 0 ? ((interact / view) * 100).toFixed(2) : '0.00';
+    const fmt       = n => n.toLocaleString('vi-VN');
+    const videoLink = `https://www.tiktok.com/@${author}/video/${v.video_id}`;
 
-        const count = videos.length;
-        const fmt = (n) => n.toLocaleString('vi-VN');
-        const avg = (total) => Math.round(total / count).toLocaleString('vi-VN');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td class="thumb">${cover ? `<img src="${cover}" loading="lazy">` : '—'}</td>
+      <td style="white-space:nowrap">@${author}</td>
+      <td style="max-width:260px;word-break:break-word;font-size:12px">${caption}</td>
+      <td class="num">${fmt(view)}</td>
+      <td><span style="background:#fff3cd;border:1px solid #000;padding:2px 7px;border-radius:6px;font-weight:700;font-size:12px">${er}%</span></td>
+      <td class="num">${fmt(like)}</td>
+      <td class="num">${fmt(cmt)}</td>
+      <td class="num">${fmt(share)}</td>
+      <td class="num">${fmt(save)}</td>
+      <td><a class="video-link" href="${videoLink}" target="_blank">🔗 Xem</a></td>
+      <td><span class="badge-ok">OK</span></td>`;
+    tbody.appendChild(tr);
+  });
 
-        const createCard = (title, value, average) => `
-            <div class="stat-card">
-                <div class="stat-title">${title}</div>
-                <div class="stat-value">${fmt(value)}</div>
-                <div class="stat-avg">TB: ${avg(average)}</div>
-            </div>
-        `;
+  wrap.appendChild(table);
+}
 
-        board.innerHTML = `
-            ${createCard('Lượt Xem', totalView, totalView)}
-            ${createCard('Lượt Tim', totalLike, totalLike)}
-            ${createCard('Bình Luận', totalCmt, totalCmt)}
-            ${createCard('Lượt Lưu', totalSave, totalSave)}
-            ${createCard('Chia Sẻ', totalShare, totalShare)}
-        `;
-        board.style.display = 'grid'; // Grid sẽ nhận style từ CSS (5 columns)
-    }
+// ============================================================
+// MAIN BUTTON
+// ============================================================
+$('fetchBtn').addEventListener('click', async () => {
+  const rawInput = $('username').value.trim();
+  const limit    = Math.min(parseInt($('limit').value) || 10, 48);
+  const username = extractUsername(rawInput);
 
-    // Button Handler
-    document.getElementById('fetchBtn').addEventListener('click', async () => {
-      const rawInput = document.getElementById('username').value;
-      const limit = parseInt(document.getElementById('limit').value);
-      const output = document.getElementById('output');
-      const dlBtn = document.getElementById('downloadCsvBtn');
-      const statsBoard = document.getElementById('stats-board');
+  if (!username) { alert('Vui lòng nhập Link Kênh hoặc Username hợp lệ!'); return; }
 
-      if (!rawInput) return alert('Vui lòng nhập Link Kênh hoặc ID!');
-      
-      document.getElementById('fetchBtn').disabled = true;
-      dlBtn.disabled = true;
-      output.innerHTML = '';
-      statsBoard.style.display = 'none';
-      currentData = []; 
+  isRunning = true;
+  currentData = [];
+  $('output').innerHTML = '';
+  $('stats-board').style.display = 'none';
+  $('fetchBtn').style.display  = 'none';
+  $('stopBtn').style.display   = 'inline-block';
+  $('downloadCsvBtn').disabled = true;
+  $('copySheetBtn').disabled   = true;
+  $('progressBar').style.width = '0%';
+  $('.progress-wrap' + '').style.display; // trick — use querySelector below
+  document.querySelector('.progress-wrap').style.display = 'block';
 
-      try {
-        const result = await fetchTikTokVideos(rawInput, limit);
-        const videos = result.videos;
-        const finalUsername = result.realUsername;
-        currentData = videos; 
-        
-        log(`✅ Yeah! Đã lấy thành công ${videos.length} video.`, 'success');
-        
-        renderStats(videos);
-        renderTable(videos, finalUsername);
-        
-        dlBtn.disabled = false;
-      } catch (e) {
-        log(`❌ Oops! Lỗi: ${e.message}`, 'error');
-      } finally {
-        document.getElementById('fetchBtn').disabled = false;
-      }
-    });
+  log(`⏳ Bắt đầu quét @${username}...`, 'loading');
 
-    function renderTable(videos, inputUsername) {
-      const output = document.getElementById('output');
-      const table = document.createElement('table');
-      table.innerHTML = `
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Ảnh</th>
-            <th>Kênh</th>
-            <th>Caption</th>
-            <th>View</th>
-            <th>Like</th>
-            <th>Cmt</th>
-            <th>Save</th>
-            <th>Share</th>
-            <th>Link</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      `;
-      const tbody = table.querySelector('tbody');
+  try {
+    const videos = await fetchVideos(username, limit);
+    currentData  = videos;
 
-      videos.forEach((v, index) => {
-        const tr = document.createElement('tr');
-        const authorName = v.author ? v.author.unique_id : inputUsername;
-        const caption = v.title || '-';
-        const coverUrl = v.origin_cover || v.cover || '';
+    if (!videos.length) throw new Error('Không tìm thấy video nào. Kênh có thể private.');
 
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td class="col-thumb">${coverUrl ? `<img src="${coverUrl}" loading="lazy">` : ''}</td>
-          <td>${authorName}</td>
-          <td class="col-caption" title="${caption.replace(/"/g, '&quot;')}">${caption}</td>
-          <td>${(v.play_count||0).toLocaleString()}</td>
-          <td>${(v.digg_count||0).toLocaleString()}</td>
-          <td>${(v.comment_count||0).toLocaleString()}</td>
-          <td>${(v.collect_count||0).toLocaleString()}</td>
-          <td>${(v.share_count||0).toLocaleString()}</td>
-          <td><a href="https://www.tiktok.com/@${authorName}/video/${v.video_id}" target="_blank">Xem</a></td>
-          <td><span class="col-status">OK</span></td>
-        `;
-        tbody.appendChild(tr);
-      });
-      output.appendChild(table);
-    }
+    log(`✅ Lấy thành công ${videos.length} video từ @${username}`, 'success');
+    renderStats(videos);
+    renderTable(videos, username);
 
-    document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-        if (!currentData.length) return;
-        
-        const fileUsername = currentData[0]?.author?.unique_id || 'tiktok_data';
-        
-        const headers = ['STT', 'Link Anh', 'Kenh', 'Caption', 'View', 'Like', 'Comment', 'Save', 'Share', 'Link Video', 'Trang thai'];
-        
-        const rows = currentData.map((v, index) => {
-            const authorName = v.author ? v.author.unique_id : fileUsername;
-            const caption = (v.title || '').replace(/(\r\n|\n|\r)/gm, ' ').replace(/"/g, '""');
-            
-            return [
-                index + 1,
-                v.origin_cover || v.cover || '',
-                authorName,
-                `"${caption}"`,
-                v.play_count || 0,
-                v.digg_count || 0,
-                v.comment_count || 0,
-                v.collect_count || 0,
-                v.share_count || 0,
-                `https://www.tiktok.com/@${authorName}/video/${v.video_id}`,
-                'OK'
-            ];
-        });
+    $('downloadCsvBtn').disabled = false;
+    $('copySheetBtn').disabled   = false;
+  } catch(e) {
+    log(`❌ Lỗi: ${e.message}`, 'error');
+  } finally {
+    isRunning = false;
+    $('fetchBtn').style.display = 'inline-block';
+    $('stopBtn').style.display  = 'none';
+  }
+});
 
-        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `TikTok_${fileUsername}_${new Date().getTime()}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
-  </script>
+$('stopBtn').addEventListener('click', () => {
+  isRunning = false;
+  log('⛔ Đã dừng.', 'error');
+  $('fetchBtn').style.display = 'inline-block';
+  $('stopBtn').style.display  = 'none';
+  if (currentData.length) {
+    $('downloadCsvBtn').disabled = false;
+    $('copySheetBtn').disabled   = false;
+  }
+});
+
+// ============================================================
+// EXPORT — dùng chung rowToArray
+// ============================================================
+const CSV_HEADERS = ['STT','Username','Caption','Lượt Xem','ER%','Tim','Bình Luận','Chia Sẻ','Lưu','Link Video','Ảnh Cover','Trạng Thái'];
+
+function rowToArray(v, i, username) {
+  const author   = v.author?.unique_id || username;
+  const caption  = (v.title || '').replace(/[\r\n]+/g,' ').replace(/"/g,'""');
+  const view     = v.play_count    || 0;
+  const like     = v.digg_count    || 0;
+  const cmt      = v.comment_count || 0;
+  const share    = v.share_count   || 0;
+  const save     = v.collect_count || 0;
+  const interact = like + cmt + share + save;
+  const er       = view > 0 ? ((interact/view)*100).toFixed(2) : '0.00';
+  return [
+    i+1,
+    author,
+    `"${caption}"`,
+    view, `${er}%`,
+    like, cmt, share, save,
+    `https://www.tiktok.com/@${author}/video/${v.video_id}`,
+    v.origin_cover || v.cover || '',
+    'OK'
+  ];
+}
+
+$('downloadCsvBtn').addEventListener('click', () => {
+  if (!currentData.length) return;
+  const username = currentData[0]?.author?.unique_id || 'tiktok';
+  const rows = currentData.map((v,i) => rowToArray(v,i,username).join(','));
+  const csv  = [CSV_HEADERS.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `TikTok_${username}_${Date.now()}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+
+$('copySheetBtn').addEventListener('click', () => {
+  if (!currentData.length) return;
+  const username = currentData[0]?.author?.unique_id || 'tiktok';
+  const lines = [CSV_HEADERS.join('\t')];
+  currentData.forEach((v,i) => {
+    // TSV — bỏ dấu nháy kép, thay tab trong caption bằng space
+    const row = rowToArray(v,i,username).map(c => String(c).replace(/\t/g,' ').replace(/^"|"$/g,''));
+    lines.push(row.join('\t'));
+  });
+  const tsv = lines.join('\n');
+  navigator.clipboard.writeText(tsv).then(() => {
+    showToast();
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = tsv; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast();
+  });
+});
+
+function showToast() {
+  const t = $('copyToast');
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2300);
+}
+</script>
 </body>
 </html>
