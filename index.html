@@ -262,6 +262,64 @@
     a.video-link { color: var(--primary); font-weight: 700; text-decoration: none; border-bottom: 2px solid transparent; transition: 0.2s; }
     a.video-link:hover { border-bottom: 2px solid var(--primary); background: #ffe6eb; }
 
+    /* DEBUG LOG PANEL */
+    .debug-wrap {
+      display: none;
+      margin-bottom: 25px;
+      border: 3px solid #000;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 5px 5px 0 #000;
+    }
+    .debug-header {
+      background: #111;
+      color: #00f2ea;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+    .debug-header .dot-row { display: flex; gap: 6px; }
+    .debug-header .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #000; }
+    .dot-r{background:#ff5f56} .dot-y{background:#ffbd2e} .dot-g{background:#27c93f}
+    .debug-header .title-text { flex:1; text-align:center; letter-spacing:1px; }
+    #clearLogBtn { background:transparent; border:1px solid #444; color:#aaa; padding:2px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-family:'Courier New',monospace; height:auto; text-transform:none; box-shadow:none; flex:none; width:auto; }
+    #clearLogBtn:hover { background:#333; color:#fff; transform:none; box-shadow:none; }
+    #debugLog {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 14px 16px;
+      height: 200px;
+      overflow-y: auto;
+      line-height: 1.7;
+      scroll-behavior: smooth;
+    }
+    #debugLog .dl-info  { color: #00f2ea; }
+    #debugLog .dl-ok    { color: #27c93f; }
+    #debugLog .dl-warn  { color: #ffbd2e; }
+    #debugLog .dl-err   { color: #ff5f56; }
+    #debugLog .dl-data  { color: #c792ea; }
+    #debugLog .dl-dim   { color: #666; }
+    .debug-wrap.active  { display: block; }
+
+    /* PROGRESS pulse when running */
+    .progress-bar.running {
+      animation: stripeMove 0.6s linear infinite;
+    }
+    @keyframes stripeMove {
+      0%   { background-position: 0 0; }
+      100% { background-position: 40px 0; }
+    }
+    .progress-bar {
+      background-size: 40px 40px;
+    }
+
     /* COPY TOAST */
     .copy-toast {
       display: none;
@@ -322,6 +380,17 @@
   </div>
 
   <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <!-- DEBUG LOG PANEL -->
+  <div class="debug-wrap" id="debugWrap">
+    <div class="debug-header">
+      <div class="dot-row"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+      <span class="title-text">⚡ LIVE LOG — TikTok Fetcher</span>
+      <button id="clearLogBtn">xóa</button>
+    </div>
+    <div id="debugLog"></div>
+  </div>
+
   <div id="status">👋 Sẵn sàng. Dán link kênh vào ô trên để bắt đầu!</div>
 
   <div id="stats-board"></div>
@@ -332,30 +401,64 @@
 
 <script>
 // ============================================================
-// CONFIG
+// STATE & HELPERS
 // ============================================================
-let isRunning = false;
+let isRunning  = false;
 let currentData = [];
-
 const $ = id => document.getElementById(id);
 
+// ---- Status bar (top summary) ----
 function log(msg, type = 'default') {
   const el = $('status');
   el.textContent = msg;
   el.className = `log-${type}`;
 }
 
+// ---- Debug terminal log ----
+let logLineCount = 0;
+function dlog(msg, level = 'info') {
+  const panel = $('debugLog');
+  const now   = new Date();
+  const ts    = now.toTimeString().slice(0,8) + '.' + String(now.getMilliseconds()).padStart(3,'0');
+  logLineCount++;
+  const num   = String(logLineCount).padStart(4,'0');
+  const cls   = { info:'dl-info', ok:'dl-ok', warn:'dl-warn', err:'dl-err', data:'dl-data', dim:'dl-dim' }[level] || 'dl-info';
+  const icons = { info:'ℹ', ok:'✓', warn:'⚠', err:'✗', data:'◈', dim:'·' };
+  const icon  = icons[level] || 'ℹ';
+  const line  = document.createElement('div');
+  line.innerHTML = `<span class="dl-dim">[${ts}] #${num}</span> <span class="${cls}">${icon} ${escHtml(msg)}</span>`;
+  panel.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+$('clearLogBtn').addEventListener('click', () => {
+  $('debugLog').innerHTML = '';
+  logLineCount = 0;
+});
+
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ============================================================
-// TIKWM — gọi thẳng, không proxy
+// TIKWM — gọi thẳng, log chi tiết
 // ============================================================
 async function tikwmFetch(url) {
+  dlog(`→ GET ${url.replace('https://www.tikwm.com','[tikwm]')}`, 'info');
+  const t0  = Date.now();
   const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  const ms  = Date.now() - t0;
+  dlog(`← HTTP ${res.status} (${ms}ms)`, res.ok ? 'ok' : 'err');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  if (data.code === -1) throw new Error('Rate limit / blocked');
-  if (data.code !== 0) throw new Error(`TikWM lỗi: ${data.msg || data.code}`);
+  if (data.code === -1) { dlog('API: rate limit / bị chặn', 'err'); throw new Error('Rate limit / blocked'); }
+  if (data.code !== 0)  { dlog(`API lỗi code=${data.code} msg=${data.msg}`, 'err'); throw new Error(`TikWM lỗi: ${data.msg || data.code}`); }
+  const vcount = data?.data?.videos?.length ?? 0;
+  const cursor = data?.data?.cursor ?? '—';
+  const hasMore = data?.data?.hasMore;
+  dlog(`Nhận ${vcount} video | cursor=${cursor} | hasMore=${hasMore}`, 'data');
   return data;
 }
 
@@ -381,34 +484,55 @@ async function fetchVideos(username, limit) {
   const all = [];
   let cursor = 0;
   let hasMore = true;
+  let batchNum = 0;
   if (limit > 48) limit = 48;
 
+  dlog(`Bắt đầu quét @${username} | mục tiêu: ${limit} video`, 'info');
+  dlog(`Endpoint: https://www.tikwm.com/api/user/posts`, 'dim');
+
   while (hasMore && all.length < limit && isRunning) {
-    const url = `https://www.tikwm.com/api/user/posts?unique_id=${encodeURIComponent(username)}&count=33&cursor=${cursor}`;
+    batchNum++;
+    dlog(`── Batch #${batchNum} | cursor=${cursor} | đã có: ${all.length}/${limit}`, 'warn');
+
+    const url  = `https://www.tikwm.com/api/user/posts?unique_id=${encodeURIComponent(username)}&count=33&cursor=${cursor}`;
     const data = await tikwmFetch(url);
 
     if (!data?.data?.videos || data.data.videos.length === 0) {
-      if (all.length === 0) throw new Error('Kênh private hoặc không tìm thấy');
+      if (all.length === 0) { dlog('Không có video → kênh private hoặc sai username', 'err'); throw new Error('Kênh private hoặc không tìm thấy'); }
+      dlog('Videos rỗng → dừng vòng lặp', 'warn');
       break;
     }
 
+    const before = all.length;
     for (const v of data.data.videos) {
       if (all.length >= limit) break;
       all.push(v);
     }
+    const added = all.length - before;
+    dlog(`Thêm ${added} video | tổng: ${all.length}/${limit}`, 'ok');
 
-    cursor = data.data.cursor;
+    // preview 3 video đầu batch
+    data.data.videos.slice(0, 3).forEach((v, i) => {
+      dlog(`  [${i+1}] id=${v.video_id}  view=${(v.play_count||0).toLocaleString()}  like=${(v.digg_count||0).toLocaleString()}`, 'data');
+    });
+
+    cursor  = data.data.cursor;
     hasMore = data.data.hasMore;
 
-    // Update progress bar (indeterminate style — just fill proportionally)
     const pct = Math.min((all.length / limit) * 100, 95);
     $('progressBar').style.width = pct + '%';
-    log(`⏳ Đang tải... ${all.length}/${limit} video`, 'loading');
+    log(`⏳ Đang tải... ${all.length}/${limit} video (Batch #${batchNum})`, 'loading');
 
-    if (hasMore && all.length < limit && isRunning) await sleep(800);
+    if (hasMore && all.length < limit && isRunning) {
+      dlog(`Chờ 800ms trước batch tiếp theo...`, 'dim');
+      await sleep(800);
+    }
   }
 
+  if (!isRunning) dlog('⛔ Người dùng dừng thủ công', 'warn');
   $('progressBar').style.width = '100%';
+  $('progressBar').classList.remove('running');
+  dlog(`═══ Kết thúc: ${all.length} video sau ${batchNum} batch ═══`, 'ok');
   return all;
 }
 
@@ -511,6 +635,7 @@ function renderTable(videos, username) {
   });
 
   wrap.appendChild(table);
+  dlog(`Render xong bảng ${videos.length} hàng`, 'ok');
 }
 
 // ============================================================
@@ -527,14 +652,19 @@ $('fetchBtn').addEventListener('click', async () => {
   currentData = [];
   $('output').innerHTML = '';
   $('stats-board').style.display = 'none';
-  $('fetchBtn').style.display  = 'none';
-  $('stopBtn').style.display   = 'inline-block';
-  $('downloadCsvBtn').disabled = true;
-  $('copySheetBtn').disabled   = true;
-  $('progressBar').style.width = '0%';
-  $('.progress-wrap' + '').style.display; // trick — use querySelector below
+  $('fetchBtn').style.display   = 'none';
+  $('stopBtn').style.display    = 'inline-block';
+  $('downloadCsvBtn').disabled  = true;
+  $('copySheetBtn').disabled    = true;
+  $('progressBar').style.width  = '0%';
+  $('progressBar').classList.add('running');
   document.querySelector('.progress-wrap').style.display = 'block';
+  $('debugWrap').classList.add('active');
 
+  dlog(`════ PHIÊN MỚI ════`, 'warn');
+  dlog(`Input gốc: "${rawInput}"`, 'dim');
+  dlog(`Username trích xuất: @${username}`, 'info');
+  dlog(`Giới hạn video: ${limit}`, 'info');
   log(`⏳ Bắt đầu quét @${username}...`, 'loading');
 
   try {
@@ -543,34 +673,42 @@ $('fetchBtn').addEventListener('click', async () => {
 
     if (!videos.length) throw new Error('Không tìm thấy video nào. Kênh có thể private.');
 
+    let tv=0,tl=0,tc=0,ts=0,tsv=0;
+    videos.forEach(v=>{tv+=v.play_count||0;tl+=v.digg_count||0;tc+=v.comment_count||0;ts+=v.share_count||0;tsv+=v.collect_count||0});
+    dlog(`Tổng: View=${tv.toLocaleString()} | Tim=${tl.toLocaleString()} | Cmt=${tc.toLocaleString()} | Share=${ts.toLocaleString()} | Save=${tsv.toLocaleString()}`, 'data');
+
     log(`✅ Lấy thành công ${videos.length} video từ @${username}`, 'success');
     renderStats(videos);
     renderTable(videos, username);
-
     $('downloadCsvBtn').disabled = false;
     $('copySheetBtn').disabled   = false;
   } catch(e) {
+    dlog(`EXCEPTION: ${e.message}`, 'err');
     log(`❌ Lỗi: ${e.message}`, 'error');
   } finally {
     isRunning = false;
     $('fetchBtn').style.display = 'inline-block';
     $('stopBtn').style.display  = 'none';
+    $('progressBar').classList.remove('running');
   }
 });
 
 $('stopBtn').addEventListener('click', () => {
   isRunning = false;
+  dlog('Người dùng nhấn DỪNG', 'warn');
   log('⛔ Đã dừng.', 'error');
   $('fetchBtn').style.display = 'inline-block';
   $('stopBtn').style.display  = 'none';
+  $('progressBar').classList.remove('running');
   if (currentData.length) {
     $('downloadCsvBtn').disabled = false;
     $('copySheetBtn').disabled   = false;
+    dlog(`Vẫn có ${currentData.length} video — export được`, 'ok');
   }
 });
 
 // ============================================================
-// EXPORT — dùng chung rowToArray
+// EXPORT
 // ============================================================
 const CSV_HEADERS = ['STT','Username','Caption','Lượt Xem','ER%','Tim','Bình Luận','Chia Sẻ','Lưu','Link Video','Ảnh Cover','Trạng Thái'];
 
@@ -585,11 +723,8 @@ function rowToArray(v, i, username) {
   const interact = like + cmt + share + save;
   const er       = view > 0 ? ((interact/view)*100).toFixed(2) : '0.00';
   return [
-    i+1,
-    author,
-    `"${caption}"`,
-    view, `${er}%`,
-    like, cmt, share, save,
+    i+1, author, `"${caption}"`,
+    view, `${er}%`, like, cmt, share, save,
     `https://www.tiktok.com/@${author}/video/${v.video_id}`,
     v.origin_cover || v.cover || '',
     'OK'
@@ -601,11 +736,12 @@ $('downloadCsvBtn').addEventListener('click', () => {
   const username = currentData[0]?.author?.unique_id || 'tiktok';
   const rows = currentData.map((v,i) => rowToArray(v,i,username).join(','));
   const csv  = [CSV_HEADERS.join(','), ...rows].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8;' });
   const a    = document.createElement('a');
   a.href     = URL.createObjectURL(blob);
   a.download = `TikTok_${username}_${Date.now()}.csv`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  dlog(`Xuất CSV: ${currentData.length} dòng`, 'ok');
 });
 
 $('copySheetBtn').addEventListener('click', () => {
@@ -613,19 +749,18 @@ $('copySheetBtn').addEventListener('click', () => {
   const username = currentData[0]?.author?.unique_id || 'tiktok';
   const lines = [CSV_HEADERS.join('\t')];
   currentData.forEach((v,i) => {
-    // TSV — bỏ dấu nháy kép, thay tab trong caption bằng space
     const row = rowToArray(v,i,username).map(c => String(c).replace(/\t/g,' ').replace(/^"|"$/g,''));
     lines.push(row.join('\t'));
   });
   const tsv = lines.join('\n');
   navigator.clipboard.writeText(tsv).then(() => {
-    showToast();
+    showToast(); dlog(`Copy TSV: ${currentData.length} hàng`, 'ok');
   }).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = tsv; ta.style.cssText = 'position:fixed;opacity:0';
     document.body.appendChild(ta); ta.select(); document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast();
+    showToast(); dlog(`Copy TSV fallback: ${currentData.length} hàng`, 'ok');
   });
 });
 
